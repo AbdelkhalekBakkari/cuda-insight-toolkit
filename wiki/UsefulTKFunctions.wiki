@@ -1,4 +1,5 @@
 #summary Useful ITK Functions.
+#labels Developer-Guide
 
 = Introduction =
 
@@ -12,4 +13,3 @@ Working with CUDA requires low level data structures. To find pointers to these 
 || Radius Dimensions || m_Radius.GetSize(); ||
 || Number of Pixels || input->GetPixelContainer()->Size(); ||
 || Number of Dimensions || input->GetLargestPossibleRegion().GetImageDimension(); ||
-
