@@ -3,7 +3,7 @@
 
 = Introduction =
 
-Working with CUDA requires low level data structures. To find pointers to these values often required a developer to chase the ITK hierarchy . To make life a little easier, here is a list of functions to retrieve the low level data structures of some commonly used values.
+Working with CUDA requires low level data structures. To find pointers to these values often required a developer to chase the ITK hierarchy. To make life a little easier, here is a list of functions to retrieve the low level data structures of some commonly used values.
 
 = Useful Functions =
 
