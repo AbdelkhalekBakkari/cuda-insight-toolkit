@@ -2,7 +2,7 @@
 #labels Developer-Guide
 = Introduction =
 
-This guide shows how to interface your [CUDA kernel] with a [ITK filter]. This is often the most crucial step in developing a CUDA filter. Interfacing with ITK properly allows the filter to be used in the [ITK pipeline]. This is the standard use of a filter and the user expects this behavior. The most important feature that must be taken into account while interfacing is whether or not your filter is [In-Place] the step for handling this are below.
+This guide shows how to interface your [CUDA kernel] with an [ITK filter]. This is often the most crucial step in developing a CUDA filter. Interfacing with ITK properly allows the filter to be used in the [ITK pipeline]. This is the standard use of a filter and the user expects this behavior. The most important feature that must be taken into account while interfacing is whether or not your filter is [In-Place] the step for handling this are below.
 
 This guide assumes you have a basic knowledge of CUDA and will not go into further detail on it. If you are unfamiliar with CUDA a good place to start it is [http://www.drdobbs.com/cpp/207200659 Dr Dobb's]. It also assumes you have a basic knowledge of ITK and the development of its filters. It is recommended that you read the [http://www.itk.org/ItkSoftwareGuide.pdf ITK Software Guide].
 
@@ -25,23 +25,23 @@ The kernel source file should contain your CUDA kernel code. It should also have
 An example of a c function to set up and launch a kernel where N is the number of pixels in the image:
 
 {{{
-float* invertFunction(const float* input, unsigned int N)
-{
-   // pointers
-   float *output;
-
-   // Allocate arrays on device
-   cudaMalloc((void **) &output, sizeof(float)*N);
-
-   // Compute execution configuration
-   int blockSize = 128;
-   int nBlocks = N/blockSize + (N%blockSize == 0 ? 0:1);
-
-   // Execute kernel
-   invertKernel <<< nBlocks, blockSize >>> (input, output, N);
-
-   return output;
-}
+         float* invertFunction(const float* input, unsigned int N)
+         {
+            // pointers
+            float *output;
+         
+            // Allocate arrays on device
+            cudaMalloc((void **) &output, sizeof(float)*N);
+         
+            // Compute execution configuration
+            int blockSize = 128;
+            int nBlocks = N/blockSize + (N%blockSize == 0 ? 0:1);
+         
+            // Execute kernel
+            invertKernel <<< nBlocks, blockSize >>> (input, output, N);
+         
+            return output;
+         }
 }}}
 
 The kernel header file should contain a pointer to the c function in your kernel source file. This is important for linking purposes. 
@@ -49,7 +49,7 @@ The kernel header file should contain a pointer to the c function in your kernel
 An example of a kernel header file:
 
 {{{
-float* invertFunction(const float* input, unsigned int N);
+         float* invertFunction(const float* input, unsigned int N);
 }}}
 
 == Step 3: Writing the Kernel ==
@@ -61,11 +61,11 @@ An example of a kernel which assumes 255 is the highest value in the image:
 {{{
 __global__ void invertKernel(const float *input, float *output, int N)
 {
-   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-   if (idx<N)
-   {
-         output[idx] = 255-input[idx];
-   }
+         int idx = blockIdx.x * blockDim.x + threadIdx.x;
+         if (idx<N)
+         {
+            output[idx] = 255-input[idx];
+         }
 }
 }}}
 
@@ -114,7 +114,7 @@ Some more complicated filters, such as spatially aware filters, will require the
 When doing a Neighborhood filter your CUDA kernel will require the dimensions of the user requested radius. This can be retrieved as a linear array like so:
 
 {{{
-const typename RadiusType::SizeValueType * radius = m_Kernel.GetRadius().GetSize();
+         const typename RadiusType::SizeValueType * radius = m_Kernel.GetRadius().GetSize();
 }}}
 
 ==== Request Structuring Element Kernel ====
@@ -122,7 +122,7 @@ const typename RadiusType::SizeValueType * radius = m_Kernel.GetRadius().GetSize
 More complicated filters, such as Morphological ones, will require a structuring element to run. A binary structuring element is an array equal to the radius dimensions, filled with 0s and 1s. The 1s correspond to values in a pixels neighborhood which should be included in the calculation. The following code retrieves the structuring element as a linear array.
 
 {{{
-KernelPixelType* kernel = m_Kernel.GetBufferReference().begin();
+         KernelPixelType* kernel = m_Kernel.GetBufferReference().begin();
 }}}
 
 _ITK refers to a Structuring Element as a Kernel._
@@ -156,7 +156,7 @@ Once you have collected the values required to execute the filter they must be p
 After the filter has completed, the output pointer must be given to the output image to be passed down the pipeline. This can be done like so:
 
 {{{
-output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
+         output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
 }}}
 
 In this example the 'ptr' is the pointer to output memory and the 'N' is the number of pixels in this image. The 'true' value is very important. This tells the output image to free the device memory once it is finished with it. *WARNING:* Setting this to false can lead to memory leaks on the device.
