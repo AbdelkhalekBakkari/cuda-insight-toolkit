@@ -59,14 +59,14 @@ Your CUDA kernel must be located in a .cu file.
 An example of a kernel which assumes 255 is the highest value in the image:
 
 {{{
-__global__ void invertKernel(const float *input, float *output, int N)
-{
-         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-         if (idx<N)
+         __global__ void invertKernel(const float *input, float *output, int N)
          {
-            output[idx] = 255-input[idx];
+             int idx = blockIdx.x * blockDim.x + threadIdx.x;
+             if (idx<N)
+             {
+                 output[idx] = 255-input[idx];
+             }
          }
-}
 }}}
 
 == Step 4: Writing the ITK Filter ==
