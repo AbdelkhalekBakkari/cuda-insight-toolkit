@@ -1,5 +1,5 @@
 #summary The CITK modifications to the ITK architecture explained.
-#labels Technical,Developer-Guide,User-Guide
+#labels Technical,Developer-Guide,User-Guide,Featured
 
 = Introduction =
 
