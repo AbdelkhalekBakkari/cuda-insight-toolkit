@@ -1,5 +1,5 @@
 #summary Useful ITK Functions.
-#labels Developer-Guide
+#labels Developer-Guide,Technical
 
 = Introduction =
 
