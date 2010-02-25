@@ -1,5 +1,5 @@
 #summary Step by Step Guide on Writing a CUDA Filter.
-#labels Developer-Guide
+#labels Developer-Guide,Featured
 = Introduction =
 
 This guide shows how to interface your [CUDA kernel] with an [ITK filter]. This is often the most crucial step in developing a CUDA filter. Interfacing with ITK properly allows the filter to be used in the [ITK pipeline]. This is the standard use of a filter and the user expects this behavior. The most important feature that must be taken into account while interfacing is whether or not your filter is [In-Place] the step for handling this are below.
