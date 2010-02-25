@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary The CITK modifications to the ITK architecture explained.
 #labels Technical,Developer-Guide,User-Guide
 
 = Introduction =
