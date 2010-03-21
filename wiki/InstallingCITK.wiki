@@ -3,23 +3,25 @@
 
 = Requirements =
 
-  * Standard copy of the Insight Toolkit (itk.org)
+Before installing CITK, ensure you have the following things installed.
   * CUDA enabled graphics card
   * CUDA enabled drivers
   * CUDA toolkit
 
 
-= Step 1 - Install ITK =
+= Step 1 - Extract ITK =
 
-Step 1
+Download the latest release of ITK from [www.itk.org itk].
+Make a directory for CITK and extract ITK into it.
 
 = Step 2 - Extract CITK =
 
-Step 2
+Download the latest release of CITK from [link.here here].
+Extract CITK into the same directory. You will be prompted to overwrite several files, ensure you do so to avoid future errors.
 
 = Step 3 - Build CITK =
 
-Step 3
+Run CMake as you would with any regular build of ITK. Your CUDA directories should be detected automatically using FindCUDA.cmake, assuming you have met the requirements above. Ensure the USE_CUDA_SDK flag is off unless you have the SDK installed and plan to use it. Standard CITK does not require the SDK.
 
 = Step 4 - Set Up Project =
 
