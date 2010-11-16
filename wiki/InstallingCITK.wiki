@@ -12,12 +12,12 @@ You can check to see whether you have a CUDA-capable GPU at the [http://www.nvid
 
 = Step 1 - Extract ITK =
 
-Download the latest release of ITK from www.itk.org.  
+Download the latest release of ITK from [www.itk.org].  
 Make a directory for CITK and extract the ITK files into it.
 
 = Step 2 - Extract CITK =
 
-Download the latest release of CITK from [link.here here].
+Download the latest release of CITK from [http://code.google.com/p/cuda-insight-toolkit/downloads/list here].
 Extract CITK into the same directory as above. You will be prompted to overwrite several files, ensure you do so to avoid future errors.
 
 = Step 3 - Build CITK =
