@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?>
+
+<cproject>
+<storageModule moduleId="org.eclipse.cdt.core.settings">
+<cconfiguration id="org.eclipse.cdt.core.default.config.1">
+<storageModule buildSystemId="org.eclipse.cdt.core.defaultConfigDataProvider" id="org.eclipse.cdt.core.default.config.1" moduleId="org.eclipse.cdt.core.settings" name="Configuration">
+<externalSettings/>
+<extensions>
+<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+<extension id="org.eclipse.cdt.core.GNU_ELF" point="org.eclipse.cdt.core.BinaryParser">
+<attribute key="addr2line" value="addr2line"/>
+<attribute key="c++filt" value="c++filt"/>
+</extension>
+</extensions>
+</storageModule>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping">
+<project-mappings/>
+</storageModule>
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.pathentry">
+<pathentry excluding="**/CMakeFiles/" kind="out" path=""/>
+<pathentry include="/home/pward/Approach1/Utilities/gdcm/src" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/gdcm" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/vxl/core" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/vxl/vcl" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/vxl/v3p/netlib" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/vxl/core" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/vxl/vcl" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/vxl/v3p/netlib" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Numerics/Statistics" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/itkExtHdrs" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/nifti/znzlib" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/nifti/niftilib" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/expat" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/expat" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/DICOMParser" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/DICOMParser" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build/Utilities/NrrdIO" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/NrrdIO" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Utilities/MetaIO" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/SpatialObject" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Numerics/NeuralNetworks" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Numerics/FEM" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/IO" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Numerics" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Common" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/BasicFilters" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/Code/Algorithms" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Approach1/build" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/NVIDIA_GPU_Computing_SDK/C/common/inc" kind="inc" path="" system="true"/>
+<pathentry include="/usr/local/cuda/include" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/AbsImage" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/AddImage" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/BinaryThreshold" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/CudaDouble" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/CudaNoise" kind="inc" path="" system="true"/>
+<pathentry include="/home/pward/Architecture1/src/Invert" kind="inc" path="" system="true"/>
+</storageModule>
+<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+<buildTargets>
+<target name="all" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
+<buildCommand>/usr/bin/gmake</buildCommand>
+<buildArguments/>
+<buildTarget>all</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+</target>
+<target name="clean" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
+<buildCommand>/usr/bin/gmake</buildCommand>
+<buildArguments/>
+<buildTarget>clean</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+</target>
+<target name="rebuild_cache" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
+<buildCommand>/usr/bin/gmake</buildCommand>
+<buildArguments/>
+<buildTarget>rebuild_cache</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+</target>
+<target name="ITK-CUDA-FIRST" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
+<buildCommand>/usr/bin/gmake</buildCommand>
+<buildArguments/>
+<buildTarget>ITK-CUDA-FIRST</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+</target>
+<target name="ITK-CUDA-FIRST/fast" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
+<buildCommand>/usr/bin/gmake</buildCommand>
+<buildArguments/>
+<buildTarget>ITK-CUDA-FIRST/fast</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+</target>
+</buildTargets>
+</storageModule>
+<storageModule moduleId="scannerConfiguration">
+<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
+<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+<buildOutputProvider>
+<openAction enabled="true" filePath=""/>
+<parser enabled="true"/>
+</buildOutputProvider>
+<scannerInfoProvider id="specsFile">
+<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="/usr/bin/gcc" useDefault="true"/>
+<parser enabled="true"/>
+</scannerInfoProvider>
+</profile>
+<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+<buildOutputProvider>
+<openAction enabled="true" filePath=""/>
+<parser enabled="true"/>
+</buildOutputProvider>
+<scannerInfoProvider id="makefileGenerator">
+<runAction arguments="-f ${project_name}_scd.mk" command="/usr/bin/gmake" useDefault="true"/>
+<parser enabled="true"/>
+</scannerInfoProvider>
+</profile>
+</storageModule>
+</cconfiguration>
+</storageModule>
+<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+<project id="Cuda-project.null.1" name="Cuda-project"/>
+</storageModule>
+</cproject>

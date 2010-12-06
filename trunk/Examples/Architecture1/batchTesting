@@ -1,0 +1,82 @@
+#!/bin/bash
+
+i=0
+
+while [ $i -lt 4 ]
+   do
+      j=3
+      if [ $i -eq 0 ] 
+      then 
+      radius=2 
+      fi
+      if [ $i -eq 1 ] 
+      then 
+      radius=4 
+      fi
+      if [ $i -eq 2 ] 
+      then 
+      radius=10 
+      fi
+      if [ $i -eq 3 ] 
+      then 
+      radius=16 
+      fi
+
+      while [ $j -lt 4 ]
+         do
+            k=0
+      if [ $j -eq 0 ] 
+      then 
+      prog="./bin/ITK-CPU-MEAN-2D src/input.mhd src/outputC.mhd"
+      fi
+      if [ $j -eq 1 ] 
+      then 
+      prog="./bin/ITK-GPU-MEAN-2D src/input.mhd src/outputG.mhd"
+      fi
+      if [ $j -eq 2 ] 
+      then 
+      prog="./bin/ITK-GPU-MEAN-3D src/input3D.mhd src/outputG3D.mhd"
+      fi
+      if [ $j -eq 3 ] 
+      then 
+      prog="./bin/ITK-CPU-MEAN-3D src/input3D.mhd src/outputC3D.mhd"
+      fi
+            while [ $k -lt 3 ]
+               do
+                 if [ $k -eq 0 ] 
+                  then 
+                  filter=1 
+                  fi
+                  if [ $k -eq 1 ] 
+                  then 
+                  filter=4 
+                  fi
+                  if [ $k -eq 2 ] 
+                  then 
+                  filter=20 
+                  fi
+                  if [ $k -eq 3 ] 
+                  then 
+                  filter=50 
+                  fi
+                  if [ $k -eq 4 ] 
+                  then 
+                  filter=100 
+                  fi
+                  if [ $k -eq 5 ] 
+                  then 
+                  filter=201 
+                  fi
+
+                  $prog $filter $radius
+                  $prog $filter $radius
+                  $prog $filter $radius
+                  $prog $filter $radius
+                  $prog $filter $radius
+
+                  k=`expr $k + 1`
+                done
+          j=`expr $j +1`
+          done
+      i=`expr $i + 1`
+   done

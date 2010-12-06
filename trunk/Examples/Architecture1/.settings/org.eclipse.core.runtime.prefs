@@ -1,0 +1,5 @@
+#Mon Jan 25 13:12:54 EST 2010
+content-types/enabled=false
+content-types/org.eclipse.cdt.core.cSource/file-extensions=cu
+content-types/org.eclipse.cdt.core.cxxSource/file-extensions=txx
+eclipse.preferences.version=1
