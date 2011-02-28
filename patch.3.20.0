@@ -2403,7 +2403,7 @@ index 0000000..40163d9
 +
 +#endif
 diff --git Code/Common/itkImage.h Code/Common/itkImage.h
-index 0c26606..f2d6fcc 100644
+index 0c26606..0642f3e 100644
 --- Code/Common/itkImage.h
 +++ Code/Common/itkImage.h
 @@ -19,6 +19,7 @@
@@ -2424,6 +2424,21 @@ index 0c26606..f2d6fcc 100644
  
    /** Index typedef support. An index is used to access pixel values. */
    typedef typename Superclass::IndexType       IndexType;
+@@ -241,6 +243,14 @@ public:
+   const TPixel *GetBufferPointer() const
+     { return m_Buffer ? m_Buffer->GetBufferPointer() : 0; }
+ 
++  /** Return a pointer to the beginning of the buffer on the GPU.  This is used by
++   * the image iterator class. */
++  TPixel *GetDevicePointer()
++    { return m_Buffer ? m_Buffer->GetDevicePointer() : 0; }
++  TPixel *GetDevicePointer() const
++    { return m_Buffer ? m_Buffer->GetDevicePointer() : 0; }
++
++
+   /** Return a pointer to the container. */
+   PixelContainer* GetPixelContainer()
+     { return m_Buffer.GetPointer(); }
 diff --git Testing/Data Testing/Data
 deleted file mode 160000
 index 60c53c9..0000000
