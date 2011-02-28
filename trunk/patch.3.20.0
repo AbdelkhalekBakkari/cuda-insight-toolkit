@@ -1800,6 +1800,19 @@ index 0b839c7..c549aa9 100644
 +if(NOT CUDA_FOUND)                                            
 +   message("CUDA could not be located on your system.")       
 +endif(NOT CUDA_FOUND)                                         
+diff --git Code/Common/CMakeLists.txt Code/Common/CMakeLists.txt
+index 55749ea..8f66d32 100644
+--- Code/Common/CMakeLists.txt
++++ Code/Common/CMakeLists.txt
+@@ -129,7 +129,7 @@ IF(ITK_EXPLICIT_INSTANTIATION)
+   )
+ ENDIF(ITK_EXPLICIT_INSTANTIATION)
+ 
+-ADD_LIBRARY(ITKCommon ${ITK_COMMON_BUILD_TYPE} ${ITKCommon_SRCS} ${WRAPPER_EXPLICIT_ITKCommon_SRCS})
++CUDA_ADD_LIBRARY(ITKCommon ${ITK_COMMON_BUILD_TYPE} ${ITKCommon_SRCS} ${WRAPPER_EXPLICIT_ITKCommon_SRCS})
+ 
+ TARGET_LINK_LIBRARIES (ITKCommon itkvnl_inst itksys)
+ IF(UNIX)
 diff --git Code/Common/itkCudaImportImageContainer.h Code/Common/itkCudaImportImageContainer.h
 new file mode 100644
 index 0000000..2249a5d
