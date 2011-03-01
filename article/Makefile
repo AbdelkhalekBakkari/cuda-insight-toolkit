@@ -1,6 +1,6 @@
 
 # you should use the title of the article instead
-ARTICLE_TITLE = Morphology with parabolic structuring elements
+ARTICLE_TITLE = CITK - an architecture and examples of CUDA enabled ITK filters
 
 # spaces are not allowed
 empty:=
