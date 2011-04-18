@@ -14,7 +14,6 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "CudaAbsImageFilter.h"
 #include "itkAbsImageFilter.h"
 #include "timer.h"
 

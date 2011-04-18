@@ -13,7 +13,7 @@
 //#include <cutil.h>
 
 template <class T>
-__global__ void AbsImageKernel(T*output, int N)
+__global__ void AbsImageKernel(T *output, int N)
 {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -24,9 +24,11 @@ __global__ void AbsImageKernel(T*output, int N)
    }
 }
 
-float * AbsImageKernelFunction(const float * input, unsigned int N)
+template <class T, class S>
+S* AbsImageKernelFunction(const T * input, unsigned int N)
 {
-	float * output = const_cast<float*>(input);
+	S * output;
+	output = const_cast<S*>(input);
 
    // Compute execution configuration 
    int blockSize = 128;
@@ -38,3 +40,21 @@ float * AbsImageKernelFunction(const float * input, unsigned int N)
    // Return pointer to the output
    return output;
 }
+
+// versions we wish to compile
+#define THISFUNC AbsImageKernelFunction
+#define THISTYPE float
+template THISTYPE *  AbsImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input,  unsigned int N);
+#undef THISTYPE
+#define THISTYPE int
+template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE short
+template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE char
+template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+#undef THISTYPE
+#undef THISFUNC
