@@ -44,7 +44,7 @@ void CudaAbsImageFilter<TInputImage, TOutputImage>::GenerateData() {
 
 	// Call Cuda Function
 	typename TOutputImage::PixelType * ptr;
-	ptr = AbsImageKernelFunction(input->GetDevicePointer(), N);
+	ptr = AbsImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), N);
 	output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
 }
 }

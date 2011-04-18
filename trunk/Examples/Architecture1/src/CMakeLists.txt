@@ -313,3 +313,12 @@ ADD_TEST(GPU-MULTIPLY ${TEST_COMMAND}
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 
 )
 
+ADD_TEST(CPU-ABS ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 1 
+)
+
+ADD_TEST(GPU-ABS ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd 1 
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 
+)
+

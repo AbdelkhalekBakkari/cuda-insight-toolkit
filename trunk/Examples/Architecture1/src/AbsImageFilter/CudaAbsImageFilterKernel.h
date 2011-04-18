@@ -9,5 +9,6 @@
  *
  */
 
-float * AbsImageKernelFunction(const float * input, unsigned int N);
+template<class T, class S> extern
+S * AbsImageKernelFunction(const T * input, unsigned int N);
 
