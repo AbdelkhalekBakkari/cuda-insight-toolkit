@@ -33,7 +33,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % The title should be descriptive enough for people to be able to find
 % the relevant document. 
-\title{Morphology with parabolic structuring elements}
+\title{CITK - an architecture and examples of CUDA enabled ITK filters}
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
@@ -41,8 +41,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Richard Beare}
-\authoraddress{Richard.Beare@med.monash.edu.au\\Department of Medicine\\Monash University\\Melbourne\\Australia}
+\author{Richard Beare{$^1$}, Daniel Micevski, Chris Share\\Luke Parkinson, Phillip Ward, Mike Kuiper{$^2$}}
+\authoraddress{{$^1$}Richard.Beare@monash.edu, Monash University, Melbourne, Australia\\
+{$^2$}mike@vpac.org, Victorian Partnership for Advanced Computing, Melbourne, Australia.}
 
 \begin{document}
 \maketitle
@@ -54,188 +55,121 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
 \noindent
-Morphological erosion and dilation filters employ a structuring
-function, with flat structuring functions being the most common
-example. Parabolic\footnote{This article will use the term
-``parabolic'', but much of the literature uses ``quadratic''}
-structuring functions are less well known but theoretically very
-important and practically very useful. This paper briefly introduces
-morphology using parabolic structuring functions, describes the ITK
-classes used to implement them and includes a number of sample
-applications.
+There is great interest in the use of graphics processing units (GPU)
+for general purpose applications because the highly parallel
+architectures used in GPUs offer the potential for huge performance
+increases. The use of GPUs in image analysis applications has been
+under investigation for a number of years. This article describes
+modifications to the InsightToolkit (ITK) that provide a simple
+architecture for transparent use of GPU enabled filters and examples
+of how to write GPU enabled filters using the NVIDIA CUDA tools.
 \end{abstract}
 
 \tableofcontents
 
 \section{Introduction}
-Parabolic structuring functions (PSF) have the following important properties:
+Data must be resident in GPU device memory in order to be processed by
+the GPU. In order for an ITK filter to be accelerated using GPUs an
+image must be copied to the device memory and the result copied back
+if the next filter is not GPU enabled. Copying between host and device
+memory is quite slow and can easily offset any benefits achieved by
+faster GPU processing. It is therefore essential that redundant copies
+between host and device memory are eliminated. It is also desirable
+that new, GPU enabled, filters can be included in applications without
+changing programming style.
+
+This article describes a simple modification to the itk::Image class
+that allows transparent use of CUDA enabled filters. A range of
+standard filters have been implemented and extensive testing
+performed.
+
+\section{CITK Architecture}
+The aim of the architecture outline below was to allow GPU enabled
+filters to be included in an application without change of programming
+style or losing performance via redundant host to device memory copies.
+
+A number of architectures were considered. These were derived from online discussions and small samples of code available online:
 \begin{itemize}
-\item They are closed under dilation - i.e. dilating two PSFs results in a third PSF.
-\item An n-dimensional PSF can be obtained by combining n
-one-dimensional PSFs in independent directions.
-\item PSFs are rotationally symmetric allowing the dimensional
-decomposition by dilation.
-\end{itemize}
-These properties make PSFs the morphological counterpart of the
-Gaussian in linear image processing \cite{Boomgaard96}.
-
-The dimensional decompostion properties lead to efficient algorithms
-for implementing parabolic morphological operations.
-
-Parabolic morphology operations are useful in image sharpening,
-distance transforms, are a less vigorous alternative to conventional
-morphological operations based on flat structuring elements and a
-potentially useful, faster, alternative to shaped structuring elements
-such as the ``rolling ball'' often used in background estimation in
-tools such as ImageJ.
-
-\section{Brief background theory}
-A dilation by a one dimensional parabolic structuring element is
-illustrated in Figure \ref{fig:paradilate}. The dilation of the signal
-at point A is found by lowering the structuring function centred at A
-until the structuring function comes into contact with the signal, in
-this case at point B. The dilation at this point is given by point C,
-the height of the parabola turning point. The equivalent erosion is
-calculated by raising an inverted parabola into the signal from below.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[scale=0.75]{dilate_parabolic}
-\caption{Dilation of a 1D signal with a parabolic structuring element.\label{fig:paradilate}}
-\end{figure}
-
-\section{ITK classes}
-The filters discussed in this section implement the ``point of
-contact'' algorithm \cite{Boomgaard96}. Algorithms that are more
-efficient for larger kernel sizes are available and are discussed by
-van den Boomgaard et al, but haven't been implemented in this package.
-The classes {\em itkParabolicErodeImageFilter}, {\em
-itkParabolicDilateImageFilter}, {\em itkParabolicCloseImageFilter} and
-{\em itkParabolicOpenImageFilter} provide the range of parabolic
-morphology operations. These classes derive from {\em
-itkParabolicErodeDilateImageFilter} and {\em
-itkParabolicOpenCloseImageFilter}, which implement the core
-functionality. The open and close filters offer an optional border
-padding facility.
-
-The controling methods available for these classes is :
-\begin{itemize}
-\item {\bf Set/GetScale} : a PSF is usually defined as $f(x)=\frac{1}{2\rho}x^2$. This method sets $\rho$.
-\item {\bf Set/GetUseImageSpacing} : defines whether the units for $\rho$ are voxels or image spacing.
-\item {\bf SetSafeBorder} : controls whether border padding is used in opening or closing operations.
+\item Break the pipeline at the beginning of filter execution by
+  copying data to device memory, processing, and then copying back
+  after execution completes. This isolates the GPU code from the rest
+  of the pipeline and requires no change to ITK infrastructure, but
+  introduces redundant copies if subsequent filters are GPU enabled.
+\item Include interface objects between filters in the pipeline to
+  manage copying. This can eliminate redundant copies but requires
+  that the programmer be aware of which filters are GPU enabled. There
+  is also a minor change of programming style.
 \end{itemize}
 
-Note that there are actually a variety of ways in which scale is of
-PSFs is defined in the literature, including $f(x) =
-(\frac{x}{scale})^2$ and $f(x) = (\frac{x^2}{scale})$. Logarithmic
-scales are another alternative.
+Neither of these options require a modification to core ITK classes.
 
-\section{Applications}
-\subsection{Sharpening}
-Image sharpening using parabolic operations has been analysed in
-\cite{Schavemaker2000}. This form of sharpening is based on the following formula:
-\begin{equation}
-\epsilon[f](x, \rho) =
-\begin{cases}
-F^\oplus(x,\rho), &F^\oplus(x,\rho) - F(x,0) < F(x,0) - F^\ominus(x,\rho),\\
-F^\ominus(x,\rho), &F^\oplus(x,\rho) - F(x,0) > F(x,0) - F^\ominus(x,\rho),\\
-F(x,0), &otherwise
-\end{cases}
-\end{equation}
-where $F^\oplus(x,\rho)$ indicates dilation by parabolic structuring
-element with scale $\rho$ and $F^\ominus$ indicates erosion. In
-summary, the output of the sharpening process at a pixel is the
-dilation, if the difference between the dilation and the input is less
-than the difference between the erosion and the input. This formula
-describes one step in an iterative process. The parameters controling
-the process are scale and number of iterations. Scale selection will
-require experimentation, but will tend to be related to the size of
-blurring.
+The approach used in CITK does require a modification to core ITK
+classes, but has a number of advantages. The same approach has since
+been outlined on the ITK Wiki.
 
-This sharpening algorithm has been implemented in the {\em
-  itkMorphologicalSharpeningImageFilter}, and {\em testSharpening}
-illustrates its use. Figure \ref{fig:sharpprofs} illustrates the
-results of sharpening using profiles through an artificial image.
+The fundamental component of the pipeline is the ITK Image
+class. Within this class is a pixel container called {\em
+  ImportImageContainer}, used to manage the image data. CITK includes
+a substitute pixel container named {\em
+  CudaImportImageContainer}. This pixel container has all the same
+functionality of the {\em ImportImageContainer} which results in full
+compatibility with existing ITK components.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[scale=0.8]{sharp.eps}
-\caption{Profiles through an artificial image illustrating the sharpening process. Scale value was 1 pixel.\label{fig:sharpprofs}}
-\end{figure}
+The {\em CudaImportImageContainer} not only managed the image data on
+the host, but it also managed the image data on the device. When a
+standard filter requested the image data, such as through an iterator,
+the {\em CudaImportImageContainer} checks whether the most up to date
+image is on the device or the host. If it is on the device, it is
+copied back onto the host. This data is then supplied to the
+user. Similarly when a GPU filter requests the image data, the {\em
+  CudaImportImageContainer} would check where the most up to date
+image is, and copy it to the device if required.
 
-\subsection{Distance Tranforms}
-Parabolic erosions and dilations can be used to construct distance
-transforms. Two classes have been provided in this package:
-\begin{itemize}
-\item {\em itkMorphologicalDistanceTransformImageFilter} for one sided distance transforms.
-\item {\em itkMorphologicalSignedDistanceTransformImageFilter} for signed distance transforms.
-\end{itemize}
-The concept is fairly simple - consider applying a parabolic erosion,
-with scale 1, to a mask image with values of $0$ and $\inf$. The value
-of the erosion at mask locations with value 0 will remain 0. The value
-at mask locations of $\inf$ are equal to the square of the distance to
-the nearest 0 value. The idea can be easily extended to allow
-computation of the inside and outside distances without
-rethresholding. This method should be more accurate than basic chamfer
-approaches and appears slightly faster than the {\em
-  SignedDanielssonDistanceTransform} but slower than the {\em
-  SignedMaurerDistanceTransform} currently provided in ITK, as
-illustrated in Table \ref{tbl:perf}. The parabolic version does not
-return voronoi tesselations or vectors pointing to the nearest inverse
-pixel because such things aren't required in construction of the
-distance transform. The Danielsson approach produces an approximate
-distance transform (albeit a good one for most purposes), while the
-approach using parabolic morphology is exact. The parabolic morphology
-approach does not perform as well as the Maurer approach, but may be
-able to do better in the future since it is easily threadable (see
-Section \ref{sect:threading}) and other optimizations that haven't yet
-been implemented are available. In addition, no attempt has been made
-to use integer arithmetic. 
+The {\em CudaImportImageContainer} can track where the most up to the
+date image is by which set command was used last, and assumes the data
+is modified when a standard iterator requests it.
 
-\begin{table}[phtb]
-\centering
-\begin{tabular}{cccc}
-\hline
-Image & Parabolic & Maurer & Danielsson \\ 
-$256 \times 256$ & 0.0457 & 0.0152 & 0.0568 \\
-$258 \times 258 \times 182$ & 10.4  &  7.28  &  16.1 \\
-\hline
-\end{tabular}
-\caption{Execution times, in seconds, for computing signed distance tranforms using parabolic morphology, Maurer and Danielsson methods in ITK. The standard, $256 \times 256$ {\em cthead} image was used for 2D, the bunnyPadded image for 3D, and the test was repeated 10 times. These figures were obtained using perfDT and perfDT3D, in this package. Tests were single threaded and run on an Intel Core2 Duo CPU, E4600, 2.40GHz, 2M cache running Linux.\label{tbl:perf}}
-\end{table}
+The result of this is memory transfers are only performed when
+required and are completed transparent to both the developer and the
+user. This leaves all the responsibility on the architect, rather than
+the developer or the user such as in the other attempts.
 
-\section{Multi-threaded implementations}
-\label{sect:threading}
-The morphological operations described in this article are constructed
-using sequences of one dimensional operations along directions
-parallel to the image axes. Such operations are easily parallelisable,
-with each line operation being independent. However the current ITK
-threading framework is not ideal for implementing this style of
-parallel operation. Alternative approaches are available but haven't
-yet been implemented. When they are available they will also provide a
-useful framework for threading other line based filters, such as the
-recursive gaussian smoothing filters and morphological operations
-using flat structuring elements.
+\section{Anatomy of a CUDA enabled filter}
+\subsection{Image parameters}
+Different image operations require different image information. Number
+of pixels and image dimensions are all available in the normal way via
+GetSize, GetNumberOfPixels and related methods.
 
-Parallel implementation will also allow acceleration of the
-morphological distance transform computation - which is not feasible
-for queue based approaches like the Danielsson method.
+\subsection{Memory management}
+
+Your CUDA kernel function should return a pointer to the output image as a global device pointer:
+
+{\tt typename TOutputImage::PixelType * ptr;}
+
+A pointer to input image memory is retrieved using:
+
+{\tt input->GetDevicePointer();}
+
+After the filter has completed, the output pointer must be given to
+the output image to be passed down the pipeline:
+
+{\tt output->GetPixelContainer()->SetDevicePointer(ptr, N, true);}
+
+In this example the {\tt ptr} is the pointer to output memory and the 'N'
+is the number of pixels in this image. The 'true' value is very
+important. This tells the output image to free the device memory once
+it is finished with it. WARNING: Setting this to false can lead to
+memory leaks on the device.
 
 
-\section{Conclusions and further work}
-This article introduces implementations of an important class of
-morphological operations - erosions and dilations be parabolic
-structuring elements. Applications of these operations to sharpening
-and distance transforms are also presented. The latter appears to
-outperform some existing implementations and may do better as improved
-algorithms are implemented.
 
-\section*{Acknowledgements}
-Thanks to Paul Jackway for valuable discussions.
+\subsection{Templated kernel file}
 
+%\subsection{}
 
 \bibliographystyle{plain}
-\bibliography{local,InsightJournal}
+%\bibliography{local,InsightJournal}
+\bibliography{InsightJournal}
 \nocite{ITKSoftwareGuide}
 
 \end{document}
