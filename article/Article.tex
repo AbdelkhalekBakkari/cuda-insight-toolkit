@@ -41,8 +41,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Richard Beare}
-\authoraddress{Richard.Beare@med.monash.edu.au\\Department of Medicine\\Monash University\\Melbourne\\Australia}
+\author{Richard Beare{$^1$}, Daniel Micevski, Chris Share\\Luke Parkinson, Phillip Ward, Mike Kuiper{$^2$}}
+\authoraddress{{$^1$}Richard.Beare@monash.edu, Monash University, Melbourne, Australia\\
+{$^2$}mike@vpac.org, Victorian Partnership for Advanced Computing, Melbourne, Australia.}
 
 \begin{document}
 \maketitle
@@ -54,18 +55,117 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
 \noindent
+There is great interest in the use of graphics processing units (GPU)
+for general purpose applications because the highly parallel
+architectures used in GPUs offer the potential for huge performance
+increases. The use of GPUs in image analysis applications has been
+under investigation for a number of years. This article describes
+modifications to the InsightToolkit (ITK) that provide a simple
+architecture for transparent use of GPU enabled filters and examples
+of how to write GPU enabled filters using the NVIDIA CUDA tools.
 \end{abstract}
 
 \tableofcontents
 
 \section{Introduction}
+Data must be resident in GPU device memory in order to be processed by
+the GPU. In order for an ITK filter to be accelerated using GPUs an
+image must be copied to the device memory and the result copied back
+if the next filter is not GPU enabled. Copying between host and device
+memory is quite slow and can easily offset any benefits achieved by
+faster GPU processing. It is therefore essential that redundant copies
+between host and device memory are eliminated. It is also desirable
+that new, GPU enabled, filters can be included in applications without
+changing programming style.
 
-\section{NVCC bugs}
+This article describes a simple modification to the itk::Image class
+that allows transparent use of CUDA enabled filters. A range of
+standard filters have been implemented and extensive testing
+performed.
 
-SSE - turn off SSE in ITK build - advanced/VNL
+\section{CITK Architecture}
+The aim of the architecture outline below was to allow GPU enabled
+filters to be included in an application without change of programming
+style or losing performance via redundant host to device memory copies.
 
-return after exception throw.
+A number of architectures were considered. These were derived from online discussions and small samples of code available online:
+\begin{itemize}
+\item Break the pipeline at the beginning of filter execution by
+  copying data to device memory, processing, and then copying back
+  after execution completes. This isolates the GPU code from the rest
+  of the pipeline and requires no change to ITK infrastructure, but
+  introduces redundant copies if subsequent filters are GPU enabled.
+\item Include interface objects between filters in the pipeline to
+  manage copying. This can eliminate redundant copies but requires
+  that the programmer be aware of which filters are GPU enabled. There
+  is also a minor change of programming style.
+\end{itemize}
 
+Neither of these options require a modification to core ITK classes.
+
+The approach used in CITK does require a modification to core ITK
+classes, but has a number of advantages. The same approach has since
+been outlined on the ITK Wiki.
+
+The fundamental component of the pipeline is the ITK Image
+class. Within this class is a pixel container called {\em
+  ImportImageContainer}, used to manage the image data. CITK includes
+a substitute pixel container named {\em
+  CudaImportImageContainer}. This pixel container has all the same
+functionality of the {\em ImportImageContainer} which results in full
+compatibility with existing ITK components.
+
+The {\em CudaImportImageContainer} not only managed the image data on
+the host, but it also managed the image data on the device. When a
+standard filter requested the image data, such as through an iterator,
+the {\em CudaImportImageContainer} checks whether the most up to date
+image is on the device or the host. If it is on the device, it is
+copied back onto the host. This data is then supplied to the
+user. Similarly when a GPU filter requests the image data, the {\em
+  CudaImportImageContainer} would check where the most up to date
+image is, and copy it to the device if required.
+
+The {\em CudaImportImageContainer} can track where the most up to the
+date image is by which set command was used last, and assumes the data
+is modified when a standard iterator requests it.
+
+The result of this is memory transfers are only performed when
+required and are completed transparent to both the developer and the
+user. This leaves all the responsibility on the architect, rather than
+the developer or the user such as in the other attempts.
+
+\section{Anatomy of a CUDA enabled filter}
+\subsection{Image parameters}
+Different image operations require different image information. Number
+of pixels and image dimensions are all available in the normal way via
+GetSize, GetNumberOfPixels and related methods.
+
+\subsection{Memory management}
+
+Your CUDA kernel function should return a pointer to the output image as a global device pointer:
+
+{\tt typename TOutputImage::PixelType * ptr;}
+
+A pointer to input image memory is retrieved using:
+
+{\tt input->GetDevicePointer();}
+
+After the filter has completed, the output pointer must be given to
+the output image to be passed down the pipeline:
+
+{\tt output->GetPixelContainer()->SetDevicePointer(ptr, N, true);}
+
+In this example the {\tt ptr} is the pointer to output memory and the 'N'
+is the number of pixels in this image. The 'true' value is very
+important. This tells the output image to free the device memory once
+it is finished with it. WARNING: Setting this to false can lead to
+memory leaks on the device.
+
+
+
+\subsection{Templated kernel file}
+
+%\subsection{}
 
 \bibliographystyle{plain}
 %\bibliography{local,InsightJournal}
