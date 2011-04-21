@@ -10,5 +10,5 @@
  */
 
 template<class T, class S> extern
-S * AbsImageKernelFunction(const T * input, unsigned int N);
+void AbsImageKernelFunction(const T * input, S * output, unsigned int N);
 

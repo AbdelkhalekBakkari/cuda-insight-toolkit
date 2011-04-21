@@ -29,23 +29,16 @@ void CudaAbsImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream& os,
  */
 template<class TInputImage, class TOutputImage>
 void CudaAbsImageFilter<TInputImage, TOutputImage>::GenerateData() {
-	typename OutputImageType::Pointer output = this->GetOutput();
-	typename InputImageType::ConstPointer input = this->GetInput();
-
-	// Allocate Output Region
-	typename OutputImageType::RegionType outputRegion;
-	outputRegion.SetSize(input->GetLargestPossibleRegion().GetSize());
-	outputRegion.SetIndex(input->GetLargestPossibleRegion().GetIndex());
-	output->SetRegions(outputRegion);
-	output->Allocate();
-
-	// Get Total Size
-	const unsigned long N = input->GetPixelContainer()->Size();
-
-	// Call Cuda Function
-	typename TOutputImage::PixelType * ptr;
-	ptr = AbsImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), N);
-	output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
+  this->AllocateOutputs();
+  typename OutputImageType::Pointer output = this->GetOutput();
+  typename InputImageType::ConstPointer input = this->GetInput();
+  
+  // Get Total Size
+  const unsigned long N = input->GetPixelContainer()->Size();
+  
+  // Call Cuda Function
+  AbsImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), 
+							  output->GetDevicePointer(), N);
 }
 }
 

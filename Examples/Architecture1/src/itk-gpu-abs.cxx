@@ -59,9 +59,12 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	bool InPlace = (bool)atoi(argv[4]);
+
 	FilterType::Pointer filter[nFilters];
 	filter[0] = FilterType::New();
 	filter[0]->SetInput(0,reader1->GetOutput());
+	filter[0]->SetInPlace(InPlace);
 
 	for (int i = 1; i < nFilters; ++i) {
 		filter[i] = FilterType::New();
@@ -79,7 +82,6 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	cout << argv[4] << endl;
 
 	// Set Up Output File and Write Image
 	WriterType::Pointer writer = WriterType::New();
