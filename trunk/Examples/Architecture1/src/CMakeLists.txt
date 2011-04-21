@@ -15,7 +15,8 @@ CUDA_INCLUDE_DIRECTORIES(
 # automatically by CUDA_ADD_EXECUTABLE and CUDA_ADD_LIBRARY.
 
 INCLUDE_DIRECTORIES(
-	${CUDA_INCLUDE_DIRS}
+	${CUDA_INCLUDE_DIRECTORIES}
+   Common
    AbsImageFilter
    AddImageFilter
    AddConstantToImageFilter
@@ -29,7 +30,7 @@ INCLUDE_DIRECTORIES(
    MaximumImageFilter
    MeanImageFilter
    MinimumImageFilter
-   MultiplyImageFilter
+   MultiplyImageFilter2
    MultiplyByConstantImageFilter
    NeighborhoodFilter
    RescaleIntensityImageFilter
@@ -127,7 +128,7 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-OPEN
   ITKBasicFilters ITKCommon ITKIO
 )
 CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLY 
- MultiplyImageFilter/CudaMultiplyImageFilterKernel.cu
+ MultiplyImageFilter2/CudaMultiplyImageFilterKernel.cu
  itk-gpu-multiply.cxx
  )
 #CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLY 
@@ -309,16 +310,26 @@ ADD_TEST(CPU-MULTIPLY ${TEST_COMMAND}
 )
 
 ADD_TEST(GPU-MULTIPLY ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd 1 
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd 1 1
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 
 )
+
+ADD_TEST(GPU-MULTIPLY2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 
+)
+
 
 ADD_TEST(CPU-ABS ${TEST_COMMAND}
 		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 1 
 )
 
 ADD_TEST(GPU-ABS ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd 1 
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd 1 1
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 
 )
 
+ADD_TEST(GPU-ABS2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 
+)

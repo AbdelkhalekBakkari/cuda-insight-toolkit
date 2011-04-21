@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __itkCudaAbsImageFilter_h
 #define __itkCudaAbsImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -35,7 +35,7 @@ namespace itk
  * \brief Computes the ABS(x) pixel-wise
  * 
  * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
- *
+ *         Richard Beare, Monash University.
  * \ingroup IntensityImageFilters  CudaEnabled
  *
  * \sa ImageToImageFilter
@@ -44,7 +44,7 @@ namespace itk
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaAbsImageFilter :
     public
-ImageToImageFilter<TInputImage, TOutputImage >
+CudaInPlaceImageFilter<TInputImage, TOutputImage >
 {
 public:
 
@@ -53,8 +53,7 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaAbsImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage > 
-                                             Superclass;
+  typedef CudaInPlaceImageFilter<TInputImage,TOutputImage > Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 

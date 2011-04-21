@@ -25,36 +25,50 @@ __global__ void AbsImageKernel(T *output, int N)
 }
 
 template <class T, class S>
-S* AbsImageKernelFunction(const T * input, unsigned int N)
+__global__ void AbsImageKernel(T *input, S *output, int N)
 {
-	S * output;
-	output = const_cast<S*>(input);
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
+   if (idx<N) 
+   {
+   T temp = input[idx];
+   output[idx] = (temp < 0) ? -temp : temp;
+   }
+}
+
+template <class T, class S>
+void AbsImageKernelFunction(const T * input, S * output, unsigned int N)
+{
    // Compute execution configuration 
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-   // Call kernal
-   AbsImageKernel<<< nBlocks, blockSize >>> (output, N);
+   // Call kernel
+   if (input == output) 
+     {
+     AbsImageKernel<<< nBlocks, blockSize >>> (output, N);
+     }
+   else
+     {
+     AbsImageKernel<<< nBlocks, blockSize >>> (input, output, N);
+     }
 
-   // Return pointer to the output
-   return output;
 }
 
 // versions we wish to compile
 #define THISFUNC AbsImageKernelFunction
 #define THISTYPE float
-template THISTYPE *  AbsImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input,  unsigned int N);
+template void THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,   THISTYPE * output, unsigned int N);
 #undef THISTYPE
 #define THISTYPE int
-template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * output, unsigned int N);
 #undef THISTYPE
 
 #define THISTYPE short
-template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * output, unsigned int N);
 #undef THISTYPE
 
 #define THISTYPE char
-template THISTYPE *  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input, unsigned int N);
+template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * output, unsigned int N);
 #undef THISTYPE
 #undef THISFUNC
