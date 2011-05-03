@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    itkCudaInPlaceImageFilter.h
+  Module:    CudaInPlaceImageFilter.h
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -9,11 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-  Portions of this code are covered under the VTK copyright.
-  See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -24,7 +21,7 @@
 
 namespace itk
 {
-  
+
 /** \class CudaInPlaceImageFilter
  * \brief Base class for filters that take an image as input and overwrite that image as the output
  *
@@ -70,8 +67,8 @@ public:
   typedef ImageToImageFilter<TInputImage, TOutputImage>  Superclass;
   typedef SmartPointer<Self>                             Pointer;
   typedef SmartPointer<const Self>                       ConstPointer;
-  
-  
+
+
   /** Run-time type information (and related methods). */
   itkTypeMacro(CudaInPlaceImageFilter,ImageToImageFilter);
 
@@ -85,9 +82,9 @@ public:
   typedef TInputImage                             InputImageType;
   typedef typename InputImageType::Pointer        InputImagePointer;
   typedef typename InputImageType::ConstPointer   InputImageConstPointer;
-  typedef typename InputImageType::RegionType     InputImageRegionType; 
-  typedef typename InputImageType::PixelType      InputImagePixelType; 
-  
+  typedef typename InputImageType::RegionType     InputImageRegionType;
+  typedef typename InputImageType::PixelType      InputImagePixelType;
+
   /** ImageDimension constants */
   itkStaticConstMacro(InputImageDimension, unsigned int,
                       TInputImage::ImageDimension);
@@ -141,7 +138,7 @@ protected:
    * releases the input that it has overwritten.
    *
    * \sa ProcessObject::ReleaseInputs() */
-  virtual void ReleaseInputs(); 
+  virtual void ReleaseInputs();
 
 private:
   CudaInPlaceImageFilter(const Self&); //purposely not implemented
