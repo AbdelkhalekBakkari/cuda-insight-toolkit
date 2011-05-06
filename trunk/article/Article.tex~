@@ -63,6 +63,12 @@ under investigation for a number of years. This article describes
 modifications to the InsightToolkit (ITK) that provide a simple
 architecture for transparent use of GPU enabled filters and examples
 of how to write GPU enabled filters using the NVIDIA CUDA tools.
+
+This work was performed between late 2009 and early 2010 and is being
+published as patches to ITK 3.20. It is hoped that publication will
+help inform more general development of GPU support in ITK 4.0 and
+facilitate experimentation by users requiring functionality of 3.20 or
+wishing to pursue CUDA based developments.
 \end{abstract}
 
 \tableofcontents
@@ -86,9 +92,10 @@ performed.
 \section{CITK Architecture}
 The aim of the architecture outline below was to allow GPU enabled
 filters to be included in an application without change of programming
-style or losing performance via redundant host to device memory copies.
+style or losing performance via redundant host to device memory copies. 
 
-A number of architectures were considered. These were derived from online discussions and small samples of code available online:
+A number of architectures were considered. These were derived from
+online discussions and small samples of code available online:
 \begin{itemize}
 \item Break the pipeline at the beginning of filter execution by
   copying data to device memory, processing, and then copying back
@@ -104,8 +111,8 @@ A number of architectures were considered. These were derived from online discus
 Neither of these options require a modification to core ITK classes.
 
 The approach used in CITK does require a modification to core ITK
-classes, but has a number of advantages. The same approach has since
-been outlined on the ITK Wiki.
+classes, but has a number of advantages. A similar approach has since
+been outlined on the ITK Wiki {\url http://www.cmake.org/Wiki/ITK_Release_4/GPU_Acceleration}.
 
 The fundamental component of the pipeline is the ITK Image
 class. Within this class is a pixel container called {\em
@@ -115,15 +122,14 @@ a substitute pixel container named {\em
 functionality of the {\em ImportImageContainer} which results in full
 compatibility with existing ITK components.
 
-The {\em CudaImportImageContainer} not only managed the image data on
-the host, but it also managed the image data on the device. When a
-standard filter requested the image data, such as through an iterator,
-the {\em CudaImportImageContainer} checks whether the most up to date
-image is on the device or the host. If it is on the device, it is
-copied back onto the host. This data is then supplied to the
-user. Similarly when a GPU filter requests the image data, the {\em
-  CudaImportImageContainer} would check where the most up to date
-image is, and copy it to the device if required.
+The {\em CudaImportImageContainer} manages image data on both the host
+and device. When a standard filter requests the image data, such as
+through an iterator, the {\em CudaImportImageContainer} checks whether
+the most up to date image is on the device or the host. If it is on
+the device, it is copied back onto the host. This data is then
+supplied to the user. Similarly when a GPU filter requests the image
+data, the {\em CudaImportImageContainer} would check where the most up
+to date image is, and copy it to the device if required.
 
 The {\em CudaImportImageContainer} can track where the most up to the
 date image is by which set command was used last, and assumes the data
@@ -134,6 +140,80 @@ required and are completed transparent to both the developer and the
 user. This leaves all the responsibility on the architect, rather than
 the developer or the user such as in the other attempts.
 
+\subsection{Weaknesses}
+\begin{itemize}
+\item This framework only supports Cuda, and not openCL. The ITK 4.0
+proposal supports openCL. Limitations of the Cuda development
+environment mean that even Cuda integration is less complete than
+hoped, with significant changes to compilation processes being
+necessary (see below).
+\item A copy between host and device always results in the source of
+the copy being considered redundant. This could be inefficient in some
+cases. The problem is correctly dealing with identical copies on both
+host and device. If, for example, a pipeline is branched such that one
+branch in on GPU and the other on CPU, then the branch point is likely
+to become a source of redundant copies.
+\item The need to copy between device and host memory breaks some of
+the usual assumptions, leading to some ugly use of {\em mutable}
+declarations in CudaImportImageContainer.
+\end{itemize}
+
+\section{Installation and building}
+\subsection{Cuda compiler and software development kit}
+This framework requires Cuda 3.2 and the SDK.
+\subsection{Patch ITK 3.20}
+The code distributed with this article includes a patch to modify ITK 3.20. This can be applied as follows:
+
+\begin{itemize}
+\item {\url http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
+\item extract
+\item cd ITK-3.20
+\item patch -p0 < path/to/patch_3.20.dif
+\end{itemize}
+
+Alternatviely, this code may currently be retrieved via git and gerrit, as follows:
+\begin{itemize}
+\item git clone git://itk.org/ITK.git
+\item cd ITK
+\item git checkout v3.20.0
+\item git pull http://review.source.kitware.com/p/ITK refs/changes/52/1452/1
+\end{itemize}
+
+\subsection{Build and install modified ITK}
+There are many options available when building ITK. This process has
+been tested under Linux and there are a number of changes to defaults
+required to avoid limitations to the cuda development tools. 
+\begin{itemize}
+  \item Specify location of Cuda SDK.
+  \item Turn off SSE options for VNL - advanced/VNL. This avoids errors caused by multiple inclusion of SSE files.
+\end{itemize}
+
+\subsection{Build examples}
+\subsection{Workarounds for nvcc weaknesses/bugs}
+\begin{itemize}
+  \item multiple include of SSE files - turn off SSE options for VNL - advanced/VNL.
+\end{itemize}
+
+
+\subsection{Changes to standard processes for building ITK applications}
+Typical application development in ITK utilizes templates and generic
+programming and therefore does not require that the developer track
+new object code dependencies when adding new filters. In principle the
+same procedure should be possible when using CUDA enabled devices by
+compiling all application code with nvcc, leading to non-cuda code
+being compiled with the host c++ compiler and cuda code being compiled
+with cuda compilers. This would also allow useful templating of cuda
+kernels, leading to a relatively seamless integration with traditional
+ITK development. Unfortunately the current generation of CUDA tools is
+not able to cope with c++ of the complexity used in ITK. It is
+therefore necessary to compile cuda kernels separately, which means
+the developer must specify the correct object dependencies to the
+linker. Examples of this can be seen in the CMake files included with
+this article.
+
+Alternatives, such as compiling all cuda kernels into a library, are
+feasible but haven't been tested during this development.
+
 \section{Anatomy of a CUDA enabled filter}
 \subsection{Image parameters}
 Different image operations require different image information. Number
@@ -142,24 +222,12 @@ GetSize, GetNumberOfPixels and related methods.
 
 \subsection{Memory management}
 
-Your CUDA kernel function should return a pointer to the output image as a global device pointer:
+Two base classes have been provided to handle standard filter memory
+management - {\em CudaInPlaceImageFilter} and {\em
+CudaImageToImageFilter}. These filters allow the standard allocation
+structure to be used via {\em this->AllocateOutputs()} and {\em output->Allocate()}.
 
-{\tt typename TOutputImage::PixelType * ptr;}
 
-A pointer to input image memory is retrieved using:
-
-{\tt input->GetDevicePointer();}
-
-After the filter has completed, the output pointer must be given to
-the output image to be passed down the pipeline:
-
-{\tt output->GetPixelContainer()->SetDevicePointer(ptr, N, true);}
-
-In this example the {\tt ptr} is the pointer to output memory and the 'N'
-is the number of pixels in this image. The 'true' value is very
-important. This tells the output image to free the device memory once
-it is finished with it. WARNING: Setting this to false can lead to
-memory leaks on the device.
 
 
 
