@@ -1,5 +1,5 @@
 /*
- * File Name:    cuda-kernel.h
+ * File Name:    CudaStatisticsImageFilterKernel.h
  *
  * Author:        Phillip Ward
  * Creation Date: Monday, January 18 2010, 10:00 

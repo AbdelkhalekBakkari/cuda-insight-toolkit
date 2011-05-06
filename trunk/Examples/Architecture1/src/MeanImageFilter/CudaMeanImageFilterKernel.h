@@ -1,5 +1,5 @@
 /*
- * File Name:    cuda-kernel.h
+ * File Name:    CudaMeanImageFilterKernel.h
  *
  * Author:        Phillip Ward
  * Creation Date: Monday, January 18 2010, 10:00 

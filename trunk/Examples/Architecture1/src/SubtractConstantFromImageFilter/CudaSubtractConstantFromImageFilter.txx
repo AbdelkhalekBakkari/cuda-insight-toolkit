@@ -11,7 +11,7 @@ namespace itk {
  *
  */
 template<class TInputImage, class TOutputImage>
-CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::CudaSubtractConstantFromImageFilter() 
+CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::CudaSubtractConstantFromImageFilter()
 {
   m_Constant = 0;
 }
@@ -21,7 +21,7 @@ CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::CudaSubtractCons
  */
 template<class TInputImage, class TOutputImage>
 void CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::PrintSelf(
-		std::ostream& os, Indent indent) const 
+		std::ostream& os, Indent indent) const
 {
 	Superclass::PrintSelf(os, indent);
 

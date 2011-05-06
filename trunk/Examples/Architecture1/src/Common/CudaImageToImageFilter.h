@@ -72,8 +72,8 @@ private:
 
 // Define instantiation macro for this template.
 #define ITK_TEMPLATE_CudaImageToImageFilter(_, EXPORT, x, y) namespace itk { \
-  _(2(class EXPORT ImageToImageFilter< ITK_TEMPLATE_2 x >)) \
-  namespace Templates { typedef ImageToImageFilter< ITK_TEMPLATE_2 x > ImageToImageFilter##y; } \
+							     _(2(class EXPORT ImageToImageFilter< ITK_TEMPLATE_2 x >)) \
+							     namespace Templates { typedef ImageToImageFilter< ITK_TEMPLATE_2 x > ImageToImageFilter##y; } \
   }
 
 #if ITK_TEMPLATE_EXPLICIT

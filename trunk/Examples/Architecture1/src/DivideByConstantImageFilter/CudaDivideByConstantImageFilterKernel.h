@@ -1,9 +1,9 @@
 /*
- * File Name:    cuda-kernel.h
+ * File Name:    CudaDivideByConstantImageFilterKernel.h
  *
- * Author:        Phillip Ward
+ * Author:        Phillip Ward, Richard Beare
  * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Thursday, January 14 2010, 15:58
+ * Last Modified: Fri May  6 15:38:03 EST 2011
  * 
  * File Description:
  *
