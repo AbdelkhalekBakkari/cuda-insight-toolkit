@@ -8,5 +8,6 @@
  * File Description:
  *
  */
-float * SubtractConstantFromImageKernelFunction(const float* input1, unsigned int N, float C);
+template <class T, class S> extern
+void SubtractConstantFromImageKernelFunction(const T* input1, S*output, unsigned int N, T C);
 

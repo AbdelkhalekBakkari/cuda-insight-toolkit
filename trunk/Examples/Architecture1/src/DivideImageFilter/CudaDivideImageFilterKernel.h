@@ -8,5 +8,6 @@
  * File Description:
  *
  */
-float * DivideImageKernelFunction(const float* input1, const float* input2, unsigned int N, float MAX);
+template <class T, class S> extern
+void DivideImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N, S MAX);
 

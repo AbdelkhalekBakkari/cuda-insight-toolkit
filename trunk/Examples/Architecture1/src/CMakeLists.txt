@@ -16,7 +16,6 @@ CUDA_INCLUDE_DIRECTORIES(
 
 INCLUDE_DIRECTORIES(
 	${CUDA_INCLUDE_DIRECTORIES}
-   Common
    AbsImageFilter
    AddImageFilter
    AddConstantToImageFilter
@@ -92,6 +91,13 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-GPU-ADD
   ITKBasicFilters ITKCommon ITKIO
 )
+   CUDA_ADD_EXECUTABLE(ITK-GPU-ADDC	
+ AddConstantToImageFilter/CudaAddConstantToImageFilterKernel.cu
+ itk-gpu-addc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-GPU-ADDC
+  ITKBasicFilters ITKCommon ITKIO
+)
  CUDA_ADD_EXECUTABLE(ITK-GPU-BINARYT 
  BinaryThresholdImageFilter/CudaBinaryThresholdImageFilterKernel.cu
  itk-gpu-binarythreshold.cxx
@@ -106,6 +112,15 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-GPU-DIVIDE
   ITKBasicFilters ITKCommon ITKIO
 )
+
+CUDA_ADD_EXECUTABLE(ITK-GPU-DIVIDEC 
+ DivideByConstantImageFilter/CudaDivideByConstantImageFilterKernel.cu
+ itk-gpu-dividec.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-GPU-DIVIDEC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
  CUDA_ADD_EXECUTABLE(ITK-GPU-MAXIMUM 
  MaximumImageFilter/CudaMaximumImageFilterKernel.cu
  itk-gpu-maximum.cxx
@@ -131,10 +146,15 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLY
  MultiplyImageFilter2/CudaMultiplyImageFilterKernel.cu
  itk-gpu-multiply.cxx
  )
-#CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLY 
-#itk-gpu-multiply.cu
-#)
 TARGET_LINK_LIBRARIES ( ITK-GPU-MULTIPLY
+ ITKBasicFilters ITKCommon ITKIO
+)
+
+CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLYC 
+ MultiplyByConstantImageFilter/CudaMultiplyByConstantImageFilterKernel.cu
+ itk-gpu-multiplyc.cxx
+ )
+TARGET_LINK_LIBRARIES ( ITK-GPU-MULTIPLYC
  ITKBasicFilters ITKCommon ITKIO
 )
 
@@ -159,6 +179,15 @@ TARGET_LINK_LIBRARIES ( ITK-GPU-MULTIPLY
  TARGET_LINK_LIBRARIES ( ITK-GPU-SUBTRACT
   ITKBasicFilters ITKCommon ITKIO
 )
+
+   CUDA_ADD_EXECUTABLE(ITK-GPU-SUBTRACTC 
+ SubtractConstantFromImageFilter/CudaSubtractConstantFromImageFilterKernel.cu
+ itk-gpu-subtractc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-GPU-SUBTRACTC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
 CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN 
  itk-cpu-open.cxx
  )
@@ -195,6 +224,12 @@ CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-CPU-ADD
   ITKBasicFilters ITKCommon ITKIO
 )
+   CUDA_ADD_EXECUTABLE(ITK-CPU-ADDC
+ itk-cpu-addc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-CPU-ADDC
+  ITKBasicFilters ITKCommon ITKIO
+)
   CUDA_ADD_EXECUTABLE(ITK-CPU-BINARYT 
  itk-cpu-binarythreshold.cxx
  )
@@ -207,6 +242,13 @@ CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-CPU-DIVIDE
   ITKBasicFilters ITKCommon ITKIO
 )
+   CUDA_ADD_EXECUTABLE(ITK-CPU-DIVIDEC 
+ itk-cpu-dividec.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-CPU-DIVIDEC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
  CUDA_ADD_EXECUTABLE(ITK-CPU-MAXIMUM 
  itk-cpu-maximum.cxx
  )
@@ -231,6 +273,14 @@ CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-CPU-MULTIPLY
   ITKBasicFilters ITKCommon ITKIO
 )
+
+   CUDA_ADD_EXECUTABLE(ITK-CPU-MULTIPLYC 
+ itk-cpu-multiplyc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-CPU-MULTIPLYC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
  CUDA_ADD_EXECUTABLE(ITK-CPU-RESCALE 
  itk-cpu-rescaleintensity.cxx
  )
@@ -249,6 +299,14 @@ CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN
  TARGET_LINK_LIBRARIES ( ITK-CPU-SUBTRACT
   ITKBasicFilters ITKCommon ITKIO
 )
+
+ CUDA_ADD_EXECUTABLE(ITK-CPU-SUBTRACTC 
+ itk-cpu-subtractc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-CPU-SUBTRACTC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
 ADD_EXECUTABLE(ImageCompare ImageCompare.cxx)
 TARGET_LINK_LIBRARIES(ImageCompare ITKCommon ITKIO)
 
@@ -306,30 +364,168 @@ TARGET_LINK_LIBRARIES(ImageCompare ITKCommon ITKIO)
 #
 
 ADD_TEST(CPU-MULTIPLY ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 1 
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 1 
 )
 
 ADD_TEST(GPU-MULTIPLY ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd 1 1
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd 1 1
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 
 )
 
 ADD_TEST(GPU-MULTIPLY2 ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult2.mhd 1 0
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLY ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult2.mhd 1 0
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_mult2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_mult.mhd 
 )
 
 
+ADD_TEST(CPU-MULTIPLYC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-MULTIPLYC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_multc.mhd 11 1
+)
+
+ADD_TEST(GPU-MULTIPLYC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLYC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_multc.mhd 11 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_multc.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_multc.mhd 
+)
+
+ADD_TEST(GPU-MULTIPLYC2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MULTIPLYC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_multc2.mhd 11 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_multc2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_multc.mhd 
+)
+
+
+
+
 ADD_TEST(CPU-ABS ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 1 
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 1 
 )
 
 ADD_TEST(GPU-ABS ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd 1 1
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd 1 1
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 
 )
 
 ADD_TEST(GPU-ABS2 ${TEST_COMMAND}
-		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs2.mhd 1 0
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ABS ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs2.mhd 1 0
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_abs2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_abs.mhd 
 )
+
+
+ADD_TEST(CPU-BT ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-BINARYT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_bt.mhd 1 1 100
+)
+
+ADD_TEST(GPU-BT ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-BINARYT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_bt.mhd 1 1 100
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_bt.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_bt.mhd 
+)
+
+ADD_TEST(GPU-BT2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-BINARYT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_bt2.mhd 1 0 100
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_bt2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_bt.mhd 
+)
+
+ADD_TEST(CPU-DIVIDE ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-DIVIDE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_div.mhd 1 
+)
+
+ADD_TEST(GPU-DIVIDE ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-DIVIDE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_div.mhd 1 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_div.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_div.mhd 
+)
+
+ADD_TEST(GPU-DIVIDE2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-DIVIDE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_div2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_div2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_div.mhd 
+)
+
+
+ADD_TEST(CPU-DIVIDEC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-DIVIDEC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_dividec.mhd 11 1
+)
+
+ADD_TEST(GPU-DIVIDEC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-DIVIDEC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_dividec.mhd 11 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_dividec.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_dividec.mhd 
+)
+
+ADD_TEST(GPU-DIVIDEC2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-DIVIDEC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_dividec2.mhd 11 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_dividec2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_dividec.mhd 
+)
+
+
+
+ADD_TEST(CPU-MAXIMUM ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-MAXIMUM ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_max.mhd 1 1
+)
+
+ADD_TEST(GPU-MAXIMUM ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MAXIMUM ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_max.mhd 1 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_max.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_max.mhd 
+)
+
+ADD_TEST(GPU-MAXIMUM2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-MAXIMUM ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_max2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_max2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_max.mhd 
+)
+
+ADD_TEST(CPU-SUBTRACT ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-SUBTRACT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_sub.mhd 1 1
+)
+
+ADD_TEST(GPU-SUBTRACT ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-SUBTRACT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_sub.mhd 1 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_sub.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_sub.mhd 
+)
+
+ADD_TEST(GPU-SUBTRACT2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-SUBTRACT ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead2.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_sub2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_sub2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_sub.mhd 
+)
+
+ADD_TEST(CPU-SUBTRACTC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-SUBTRACTC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_subc.mhd 11 1
+)
+
+ADD_TEST(GPU-SUBTRACTC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-SUBTRACTC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_subc.mhd 11 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 
+)
+
+ADD_TEST(GPU-SUBTRACTC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-SUBTRACTC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_subc2.mhd 11 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_subc2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_subc.mhd 
+)
+
+
+
+ADD_TEST(CPU-ADD ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ADD ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_add.mhd 1 1
+)
+
+ADD_TEST(GPU-ADD ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ADD ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_add.mhd 1 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_add.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_add.mhd 
+)
+
+ADD_TEST(GPU-ADD2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ADD ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_add2.mhd 1 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_add2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_add.mhd 
+)
+
+
+ADD_TEST(CPU-ADDC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-ADDC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 11 1
+)
+
+ADD_TEST(GPU-ADDC ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ADDC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc.mhd 11 1
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 
+)
+
+ADD_TEST(GPU-ADDC2 ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-ADDC ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc2.mhd 11 0
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 
+)
+
+

@@ -8,5 +8,6 @@
  * File Description:
  *
  */
-float * DivideByConstantImageKernelFunction(const float* input1, unsigned int N, float C);
+template <class T, class S> extern
+void DivideByConstantImageKernelFunction(const T* input1, S* output, unsigned int N, T C);
 

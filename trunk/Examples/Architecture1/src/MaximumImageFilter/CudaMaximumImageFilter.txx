@@ -30,19 +30,14 @@ void CudaMaximumImageFilter<TInputImage, TOutputImage>::PrintSelf(
  *
  */
 template<class TInputImage, class TOutputImage>
-void CudaMaximumImageFilter<TInputImage, TOutputImage>::GenerateData() {
-	// Set input and output type names.
-	typename OutputImageType::Pointer output = this->GetOutput();
-	typename InputImageType::ConstPointer input1 = this->GetInput(0);
-	typename InputImageType::ConstPointer input2 = this->GetInput(1);
+void CudaMaximumImageFilter<TInputImage, TOutputImage>::GenerateData() 
+{
+  this->AllocateOutputs();
+  // Set input and output type names.
+  typename OutputImageType::Pointer output = this->GetOutput();
+  typename InputImageType::ConstPointer input1 = this->GetInput(0);
+  typename InputImageType::ConstPointer input2 = this->GetInput(1);
 
-	// Allocate Output Region
-	// This code will set the output image to the same size as the input image.
-	typename OutputImageType::RegionType outputRegion;
-	outputRegion.SetSize(input1->GetLargestPossibleRegion().GetSize());
-	outputRegion.SetIndex(input1->GetLargestPossibleRegion().GetIndex());
-	output->SetRegions(outputRegion);
-	output->Allocate();
 
 	// Calculate number of Dimensions
 	const unsigned int D =
@@ -58,21 +53,12 @@ void CudaMaximumImageFilter<TInputImage, TOutputImage>::GenerateData() {
 		return;
 	}
 
-	// Pointer for output array of output pixel type
-	typename TOutputImage::PixelType * ptr;
-
 	// Call Cu Function to execute kernel
 	// Return pointer is to output array
-	ptr = MaximumImageKernelFunction(input1->GetDevicePointer(),
-			input2->GetDevicePointer(), N);
+	MaximumImageKernelFunction(input1->GetDevicePointer(),
+				   input2->GetDevicePointer(), 
+				   output->GetDevicePointer(), N);
 
-	// Set output array to output image
-	output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
-
-	// As CUDA output is stored in the same memory bank as the input
-	// memory management must be turned off in the input.
-	TInputImage * inputPtr1 = const_cast<TInputImage*> (this->GetInput(1));
-	inputPtr1->GetPixelContainer()->SetContainerManageDevice(false);
 }
 }
 

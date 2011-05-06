@@ -8,5 +8,6 @@
  * File Description:
  *
  */
-float * AddImageKernelFunction(const float* input1, const float* input2, unsigned int N);
+template <class T, class S> extern
+void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N);
 

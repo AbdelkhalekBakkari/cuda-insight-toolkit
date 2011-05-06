@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __itkCudaDivideByConstantImageFilter_h
 #define __itkCudaDivideByConstantImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -41,12 +41,12 @@ namespace itk
  * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
  *
  * \ingroup IntensityImageFilters  CudaEnabled
- * \sa ImageToImageFilter
+ * \sa CudaInPlaceImageFilter
  */
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaDivideByConstantImageFilter :
     public
-ImageToImageFilter<TInputImage, TOutputImage >
+CudaInPlaceImageFilter<TInputImage, TOutputImage >
 {
 public:
 
@@ -55,7 +55,7 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaDivideByConstantImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage >
+  typedef CudaInPlaceImageFilter<TInputImage,TOutputImage >
                                              Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -65,7 +65,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaDivideByConstantImageFilter,
-               ImageToImageFilter);
+               CudaInPlaceImageFilter);
 
   typedef typename InputImageType::PixelType   InputPixelType;
   typedef typename OutputImageType::PixelType  OutputPixelType;
@@ -83,11 +83,15 @@ public:
   {
 	  return m_Constant;
   }
-
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
                    (Concept::Convertible<typename TInputImage::PixelType,
                     typename TOutputImage::PixelType>));
+  itkConceptMacro(Input1Input2OutputDivideOperatorCheck,
+                  (Concept::DivisionOperators<typename TInputImage::PixelType,
+                   InputPixelType, 
+                   typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 

@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __itkCudaSubtractConstantFromImageFilter_h
 #define __itkCudaSubtractConstantFromImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -42,13 +42,13 @@ namespace itk
  *
  * \ingroup IntensityImageFilters CudaEnabled
  *
- * \sa ImageToImageFilter
+ * \sa CudaImageToImageFilter
  */
 
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaSubtractConstantFromImageFilter :
     public
-ImageToImageFilter<TInputImage, TOutputImage >
+CudaInPlaceImageFilter<TInputImage, TOutputImage >
 {
 public:
 
@@ -57,7 +57,7 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaSubtractConstantFromImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage >
+  typedef CudaInPlaceImageFilter<TInputImage,TOutputImage >
                                              Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -67,7 +67,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaSubtractConstantFromImageFilter,
-               ImageToImageFilter);
+               CudaInPlaceImageFilter);
 
   typedef typename InputImageType::PixelType   InputPixelType;
   typedef typename OutputImageType::PixelType  OutputPixelType;
@@ -93,7 +93,7 @@ public:
                    typename TOutputImage::PixelType>));
   itkConceptMacro(Input1Input2OutputSubtractOperatorCheck,
                   (Concept::AdditiveOperators<typename TInputImage::PixelType,
-                   TConstant,
+                   InputPixelType,
                    typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif

@@ -30,10 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace itk
 {
-  
+
 /** \class CudaAbsImageFilter
  * \brief Computes the ABS(x) pixel-wise
- * 
+ *
  * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
  *         Richard Beare, Monash University.
  * \ingroup IntensityImageFilters  CudaEnabled
@@ -61,7 +61,7 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(CudaAbsImageFilter, 
+  itkTypeMacro(CudaAbsImageFilter,
                ImageToImageFilter);
 
   typedef typename InputImageType::PixelType   InputPixelType;

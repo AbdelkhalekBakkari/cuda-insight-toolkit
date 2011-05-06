@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __itkCudaAddImageFilter_h
 #define __itkCudaAddImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -65,14 +65,14 @@ namespace itk
  *
  * \ingroup IntensityImageFilters  CudaEnabled
  * 
- * \sa ImageToImageFilter
+ * \sa CudaInPlaceImageFilter
  */
 
 
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaAddImageFilter :
     public
-ImageToImageFilter<TInputImage, TOutputImage >
+CudaInPlaceImageFilter<TInputImage, TOutputImage >
 {
 public:
 
@@ -81,7 +81,7 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaAddImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage >
+  typedef CudaInPlaceImageFilter<TInputImage,TOutputImage >
                                              Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -91,7 +91,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaAddImageFilter,
-               ImageToImageFilter);
+               CudaInPlaceImageFilter);
 
   typedef typename InputImageType::PixelType   InputPixelType;
   typedef typename OutputImageType::PixelType  OutputPixelType;
