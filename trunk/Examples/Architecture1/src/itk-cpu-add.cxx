@@ -2,9 +2,9 @@
  * File Name:    myFirstITKFilter.cxx
  *
  * Author:        Phillip Ward
- * Creation Date: Monday, December 21 2009, 14:15 
+ * Creation Date: Monday, December 21 2009, 14:15
  * Last Modified: Friday, January 15 2010, 16:35
- * 
+ *
  * File Description:
  *
  */
