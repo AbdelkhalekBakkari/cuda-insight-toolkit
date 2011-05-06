@@ -1,13 +1,4 @@
-/*
- * File Name:    CudaStatisticsImageFilterKernel.h
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Thursday, January 14 2010, 15:58
- * 
- * File Description:
- *
- */
+
 struct StatisticsStruct
 {
 	float Count;
@@ -19,6 +10,6 @@ struct StatisticsStruct
 	float SumOfSquares;
 	float Variance;
 };
-
-float * StatisticsImageKernelFunction(const float* input, StatisticsStruct* stats, unsigned int N);
+template <class T> extern
+void StatisticsImageKernelFunction(const T* input, T *output, StatisticsStruct* stats, unsigned int N);
 

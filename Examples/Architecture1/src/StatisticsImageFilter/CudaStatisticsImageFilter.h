@@ -3,7 +3,7 @@
 #ifndef __itkCudaStatisticsImageFilter_h
 #define __itkCudaStatisticsImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkCudaImageToImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkSimpleDataObjectDecorator.h"
 
@@ -31,7 +31,7 @@ namespace itk {
  */
 
 template<class TInputImage>
-class ITK_EXPORT CudaStatisticsImageFilter: public ImageToImageFilter<
+class ITK_EXPORT CudaStatisticsImageFilter: public CudaImageToImageFilter<
   TInputImage, TInputImage> {
 public:
 
@@ -39,18 +39,16 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaStatisticsImageFilter Self;
-  typedef ImageToImageFilter<TInputImage, TInputImage> Superclass;
+  typedef CudaImageToImageFilter<TInputImage, TInputImage> Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self)
-    ;
+  itkNewMacro(Self);
 
   /** Runtime information support. */
   itkTypeMacro(CudaStatisticsImageFilter,
-	       ImageToImageFilter)
-    ;
+	       CudaImageToImageFilter);
 
   typedef typename InputImageType::RegionType RegionType;
   typedef typename InputImageType::SizeType SizeType;
@@ -131,6 +129,7 @@ protected:
   }
   void PrintSelf(std::ostream& os, Indent indent) const;
   void GenerateData();
+  void AllocateOutputs();
 
 private:
   CudaStatisticsImageFilter(const Self&); //purposely not implemented
