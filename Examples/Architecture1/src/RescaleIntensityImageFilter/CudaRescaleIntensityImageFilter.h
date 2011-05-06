@@ -3,7 +3,7 @@
 #ifndef __itkCudaRescaleIntensityImageFilter_h
 #define __itkCudaRescaleIntensityImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkCudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -28,9 +28,10 @@ namespace itk
  * user-defined linear transformation for the intensity, then please use the
  * ShiftScaleImageFilter.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Victorian Partnership for Advanced Computing
+ * (VPAC). Richard Beare.
  *
- * \sa ImageToImageFilter
+ * \sa CudaInPlaceImageFilter
  *
  * \ingroup IntensityImageFilters  CudaEnabled
  *
@@ -40,7 +41,7 @@ namespace itk
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaRescaleIntensityImageFilter :
     public
-ImageToImageFilter<TInputImage, TOutputImage >
+CudaInPlaceImageFilter<TInputImage, TOutputImage >
 {
 public:
 
@@ -49,7 +50,7 @@ public:
 
   /** Standard class typedefs. */
   typedef CudaRescaleIntensityImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage >
+  typedef CudaInPlaceImageFilter<TInputImage,TOutputImage >
     Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -59,7 +60,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaRescaleIntensityImageFilter,
-               ImageToImageFilter);
+               CudaInPlaceImageFilter);
 
   typedef typename InputImageType::PixelType   InputPixelType;
   typedef typename OutputImageType::PixelType  OutputPixelType;
