@@ -25,12 +25,12 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
   typename ReaderType::Pointer reader2 = ReaderType::New();
   reader2->SetFileName(in2);
 
-  try 
+  try
     {
     reader1->Update();
     reader2->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
@@ -52,21 +52,21 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
   filter[0]->SetInput(0,reader1->GetOutput());
   filter[0]->SetInput(1,reader2->GetOutput());
   filter[0]->SetInPlace(InPlace);
-  for (int i = 1; i < nFilters; ++i) 
+  for (int i = 1; i < nFilters; ++i)
     {
     filter[i] = FilterType::New();
     filter[i]->SetInput(0,filter[i - 1]->GetOutput());
     filter[i]->SetInput(reader2->GetOutput());
     }
 
-  try 
+  try
     {
     start = getTime();
     filter[nFilters - 1]->Update();
     end = getTime();
     cout << end - start << endl;
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
@@ -78,11 +78,11 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
   writer->SetFileName(out1);
   writer->SetInput(filter[nFilters - 1]->GetOutput());
 
-  try 
+  try
     {
     writer->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
@@ -111,11 +111,11 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName(in1);
 
-  try 
+  try
     {
     reader1->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
@@ -136,20 +136,20 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
   filter[0] = FilterType::New();
   filter[0]->SetInput(0,reader1->GetOutput());
   filter[0]->SetInPlace(InPlace);
-  for (int i = 1; i < nFilters; ++i) 
+  for (int i = 1; i < nFilters; ++i)
     {
     filter[i] = FilterType::New();
     filter[i]->SetInput(0,filter[i - 1]->GetOutput());
     }
 
-  try 
+  try
     {
     start = getTime();
     filter[nFilters - 1]->Update();
     end = getTime();
     cout << end - start << endl;
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
@@ -161,11 +161,11 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
   writer->SetFileName(out1);
   writer->SetInput(filter[nFilters - 1]->GetOutput());
 
-  try 
+  try
     {
     writer->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
@@ -195,11 +195,11 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName(in1);
 
-  try 
+  try
     {
     reader1->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
@@ -220,14 +220,14 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
   filter->SetInput(0,reader1->GetOutput());
   filter->SetInPlace(InPlace);
 
-  try 
+  try
     {
     start = getTime();
     filter->Update();
     end = getTime();
     cout << end - start << endl;
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
@@ -239,11 +239,11 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
   writer->SetFileName(out1);
   writer->SetInput(filter->GetOutput());
 
-  try 
+  try
     {
     writer->Update();
-    } 
-  catch (itk::ExceptionObject exp) 
+    }
+  catch (itk::ExceptionObject exp)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;

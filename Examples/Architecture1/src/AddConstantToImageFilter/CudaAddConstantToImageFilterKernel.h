@@ -1,10 +1,10 @@
 /*
- * File Name:    cuda-kernel.h
+ * File Name:    CudaAddConstantToImageFilterKernel.h
  *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Thursday, January 14 2010, 15:58
- * 
+ * Author:        Phillip Ward, Richard Beare
+ * Creation Date: Monday, January 18 2010, 10:00
+ * Last Modified: Fri May  6 15:35:26 EST 2011
+ *
  * File Description:
  *
  */
