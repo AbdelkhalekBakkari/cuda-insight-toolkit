@@ -12,8 +12,8 @@
 #include <cuda.h>
 #include <cutil.h>
 
-template <class T>
-__global__ void AddConstantToImageKernel(T *output, int N, T C)
+template <class S>
+__global__ void AddConstantToImageKernel(S *output, int N, S C)
 {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
    if (idx<N) 
@@ -22,20 +22,45 @@ __global__ void AddConstantToImageKernel(T *output, int N, T C)
    }
 }
 
-float * AddConstantToImageKernelFunction(const float* input, unsigned int N, float C)
+template <class T, class S>
+__global__ void AddConstantToImageKernel(S *output, const T *input, int N, T C)
 {
-   float *output;
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+   {
+      output[idx] = input[idx] + C;
+   }
+}
 
-   output = const_cast<float*>(input);
-
+template<class T, class S>
+void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N, T C)
+{
    // Compute execution configuration 
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
 
    // Call kernal
-   AddConstantToImageKernel <<< nBlocks, blockSize >>> (output, N, C);
+   if (output == input)
+     AddConstantToImageKernel <<< nBlocks, blockSize >>> (output, N, C);
+   else
+     AddConstantToImageKernel <<< nBlocks, blockSize >>> (output, input, N, C);
 
-   // Return pointer to the output
-   return output;
 }
+
+// versions we wish to compile
+#define THISTYPE float
+template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+#define THISTYPE int
+template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE short
+template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE char
+template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+

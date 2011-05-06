@@ -14,7 +14,6 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "CudaBinaryThresholdImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "timer.h"
 
@@ -27,7 +26,9 @@ int main(int argc, char **argv) {
 	typedef float InputPixelType;
 	typedef float OutputPixelType;
 	const unsigned int Dimension = 2;
-	int nFilters = 1;//atoi(argv[4]);
+	int nFilters = atoi(argv[3]);
+	bool InPlace = (bool)atoi(argv[4]);
+
 
 	// IO Types
 	// typedef itk::RGBPixel< InputPixelType >       PixelType;
@@ -63,6 +64,9 @@ int main(int argc, char **argv) {
 	FilterType::Pointer filter[nFilters];
 	filter[0] = FilterType::New();
 	filter[0]->SetInput(reader1->GetOutput());
+
+	filter[0]->SetUpperThreshold(atof(argv[5]));
+	filter[0]->SetInsideValue(100);
 
 	for (int i = 1; i < nFilters; ++i) {
 		filter[i] = FilterType::New();

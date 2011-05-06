@@ -9,5 +9,5 @@
  *
  */
 
-CITK_OUT * MultiplyByConstantImageKernelFunction(const CITK_IN1 * input1, unsigned int N, CITK_IN1 C);
-
+template <class T, class S> extern
+void MultiplyByConstantImageKernelFunction(const T* input1, S* output, unsigned int N, T C);

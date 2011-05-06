@@ -12,30 +12,57 @@
 #include <cuda.h>
 #include <cutil.h>
 
-template <class T>
-__global__ void DivideByConstantImageKernel(T *output, int N, T C)
+template <class S>
+__global__ void DivideByConstantImageKernel(S *output, int N, S C)
 {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
    if (idx<N) 
    {
-      output[idx] = output[idx] / C;
-      
+      output[idx] /= C;
    }
 }
 
-float * DivideByConstantImageKernelFunction(const float* input1, unsigned int N, float C)
+template <class T, class S>
+__global__ void DivideByConstantImageKernel(S *output, const T *input, int N, T C)
 {
-   float *output;
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+   {
+      output[idx] = input[idx] / C;
+   }
+}
 
-   output = const_cast<float*>(input1);
-
+template<class T, class S>
+void DivideByConstantImageKernelFunction(const T* input, S* output, unsigned int N, T C)
+{
    // Compute execution configuration 
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-   // Call kernal
-   DivideByConstantImageKernel <<< nBlocks, blockSize >>> (output, N, C);
 
-   // Return pointer to the output
-   return output;
+   // Call kernal
+   if (output == input)
+     DivideByConstantImageKernel <<< nBlocks, blockSize >>> (output, N, C);
+   else
+     DivideByConstantImageKernel <<< nBlocks, blockSize >>> (output, input, N, C);
+
 }
+// versions we wish to compile
+#define THISTYPE float
+template void DivideByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE
+ * output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+#define THISTYPE int
+template void DivideByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE
+ *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE short
+template void DivideByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE
+ *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE char
+template void DivideByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE
+ *output, unsigned int N, THISTYPE C);
+#undef THISTYPE

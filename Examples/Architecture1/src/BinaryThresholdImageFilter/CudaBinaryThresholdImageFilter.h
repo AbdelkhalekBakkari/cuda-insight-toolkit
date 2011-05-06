@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __CudaBinaryThresholdImageFilter_h
 #define __CudaBinaryThresholdImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -63,14 +63,14 @@ namespace itk
  *
  * \ingroup IntensityImageFilters  CudaEnabled
  *
- * \sa ImageToImageFilter
+ * \sa CudaInPlaceImageFilter
  */
 
 
    template <class TInputImage, class TOutputImage>
       class ITK_EXPORT CudaBinaryThresholdImageFilter :
          public
-         ImageToImageFilter<TInputImage, TOutputImage >
+         CudaInPlaceImageFilter<TInputImage, TOutputImage >
    {
       public:
 
@@ -79,14 +79,14 @@ namespace itk
 
 
          typedef CudaBinaryThresholdImageFilter           Self;
-         typedef ImageToImageFilter<TInputImage,TOutputImage > 
+         typedef CudaInPlaceImageFilter<TInputImage,TOutputImage >
                                              Superclass;
          typedef SmartPointer<Self>          Pointer;
          typedef SmartPointer<const Self>    ConstPointer;
 
          itkNewMacro(Self);
 
-         itkTypeMacro(CudaBinaryThresholdImageFilter, ImageToImageFilter);
+         itkTypeMacro(CudaBinaryThresholdImageFilter, CudaInPlaceImageFilter);
 
          typedef typename InputImageType::PixelType   InputPixelType;
          typedef typename OutputImageType::PixelType  OutputPixelType;

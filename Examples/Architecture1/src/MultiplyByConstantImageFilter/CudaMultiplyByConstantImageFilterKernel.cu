@@ -12,29 +12,54 @@
 #include <cuda.h>
 #include <cutil.h>
 
-#include "CudaMultiplyByConstantImageFilterKernel.h"
 
-template <class T>
-__global__ void MultiplyByConstantImageKernel(T *output, int N, T C) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx < N) {
-		output[idx] *= C;
-	}
+template <class S>
+__global__ void MultiplyByConstantImageKernel(S *output, int N, S C)
+{
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+   {
+      output[idx] *= C;
+   }
 }
 
-CITK_OUT * MultiplyByConstantImageKernelFunction(const CIT_IN1* input1,
-		unsigned int N, CITK_IN1 C) {
-	CITK_OUT *output;
-
-	output = const_cast<CITK_IN1*> (input1);
-
-	// Compute execution configuration
-	int blockSize = 128;
-	int nBlocks = N / blockSize + (N % blockSize == 0 ? 0 : 1);
-
-	// Call kernel
-	MultiplyByConstantImageKernel <<< nBlocks, blockSize >>> (output, N, C);
-
-	// Return pointer to the output
-	return output;
+template <class T, class S>
+__global__ void MultiplyByConstantImageKernel(S *output, const T *input, int N, T C)
+{
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+   {
+      output[idx] = input[idx] * C;
+   }
 }
+
+template<class T, class S>
+void MultiplyByConstantImageKernelFunction(const T* input, S* output, unsigned int N, T C)
+{
+   // Compute execution configuration 
+   int blockSize = 128;
+   int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
+
+
+   // Call kernal
+   if (output == input)
+     MultiplyByConstantImageKernel <<< nBlocks, blockSize >>> (output, N, C);
+   else
+     MultiplyByConstantImageKernel <<< nBlocks, blockSize >>> (output, input, N, C);
+
+}
+// versions we wish to compile
+#define THISTYPE float
+template void MultiplyByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+#define THISTYPE int
+template void MultiplyByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE short
+template void MultiplyByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE
+
+#define THISTYPE char
+template void MultiplyByConstantImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
+#undef THISTYPE

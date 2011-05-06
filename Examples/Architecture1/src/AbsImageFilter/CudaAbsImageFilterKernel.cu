@@ -25,7 +25,7 @@ __global__ void AbsImageKernel(T *output, int N)
 }
 
 template <class T, class S>
-__global__ void AbsImageKernel(T *input, S *output, int N)
+__global__ void AbsImageKernel(S *output, const T *input, int N)
 {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -50,7 +50,7 @@ void AbsImageKernelFunction(const T * input, S * output, unsigned int N)
      }
    else
      {
-     AbsImageKernel<<< nBlocks, blockSize >>> (input, output, N);
+     AbsImageKernel<<< nBlocks, blockSize >>> (output, input, N);
      }
 
 }

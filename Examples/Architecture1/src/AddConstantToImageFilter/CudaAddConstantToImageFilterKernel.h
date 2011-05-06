@@ -8,5 +8,6 @@
  * File Description:
  *
  */
-float * AddConstantToImageKernelFunction(const float* input1, unsigned int N, float C);
+template <class T, class S> extern
+void AddConstantToImageKernelFunction(const T* input1, S* output, unsigned int N, T C);
 

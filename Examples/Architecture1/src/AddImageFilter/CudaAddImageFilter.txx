@@ -37,18 +37,13 @@ namespace itk
       void CudaAddImageFilter<TInputImage, TOutputImage>
       ::GenerateData()
       {
+	this->AllocateOutputs();
          // Set input and output type names.
          typename OutputImageType::Pointer output = this->GetOutput();
          typename InputImageType::ConstPointer input1 = this->GetInput(0);
          typename InputImageType::ConstPointer input2 = this->GetInput(1);
 
-         // Allocate Output Region
-         // This code will set the output image to the same size as the input image.
-         typename OutputImageType::RegionType outputRegion;
-         outputRegion.SetSize(input1->GetLargestPossibleRegion().GetSize());
-         outputRegion.SetIndex(input1->GetLargestPossibleRegion().GetIndex());
-         output->SetRegions(outputRegion);
-         output->Allocate();
+         
 
          // Calculate number of Dimensions
          const unsigned long D1 = input1->GetLargestPossibleRegion().GetImageDimension();
@@ -64,20 +59,11 @@ namespace itk
          	return;
          }
          
-         // Pointer for output array of output pixel type
-         typename TOutputImage::PixelType * ptr;
+
 
          // Call Cu Function to execute kernel
-         // Return pointer is to output array
-         ptr = AddImageKernelFunction(input1->GetDevicePointer(), input2->GetDevicePointer(), N1);
+         AddImageKernelFunction(input1->GetDevicePointer(), input2->GetDevicePointer(), output->GetDevicePointer(), N1);
 
-         // Set output array to output image
-         output->GetPixelContainer()->SetDevicePointer(ptr, N1, true);
-
-         // As CUDA output is stored in the same memory bank as the input
-         // memory management must be turned off in the input.
-         TInputImage * inputPtr1 = const_cast<TInputImage*>(this->GetInput(1));
-         inputPtr1->GetPixelContainer()->SetContainerManageDevice(false);
       }
 }
 

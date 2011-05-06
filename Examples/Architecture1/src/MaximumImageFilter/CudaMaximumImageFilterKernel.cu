@@ -1,7 +1,7 @@
 /*
  * File Name:    cuda-kernel.cu
  *
- * Author:        Phillip Ward
+ * Author:        Phillip Ward, Richard Beare
  * Creation Date: Monday, January 18 2010, 10:00 
  * Last Modified: Wednesday, December 23 2009, 16:35 
  * 
@@ -13,7 +13,7 @@
 #include <cutil.h>
 
 template <class T, class S>
-__global__ void MaximumImageKernel(T *output, const S *input, int N)
+__global__ void MaximumImageKernel(S *output, const T *input, int N)
 {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
    if (idx<N) 
@@ -26,19 +26,47 @@ __global__ void MaximumImageKernel(T *output, const S *input, int N)
    }
 }
 
-float * MaximumImageKernelFunction(const float* input1, const float* input2, unsigned int N)
+template <class T, class S>
+__global__ void MaximumImageKernel(S *output, const T *input1, const T* input2, int N)
 {
-   float *output;
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+   {
+   T in1 = input1[idx];
+   T in2 = input2[idx]; 
+   output[idx] = (in1>in2)?in1:in2;
+   }
+}
 
-   output = const_cast<float*>(input1);
-
+template <class T, class S>
+void MaximumImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N)
+{
    // Compute execution configuration 
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
    // Call kernal
-   MaximumImageKernel <<< nBlocks, blockSize >>> (output, input2, N);
+   if (output == input1)
+     MaximumImageKernel <<< nBlocks, blockSize >>> (output, input2, N);
+   else
+     MaximumImageKernel <<< nBlocks, blockSize >>> (output, input1, input2, N);
 
    // Return pointer to the output
-   return output;
 }
+
+// versions we wish to compile
+#define THISTYPE float
+template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE * output, unsigned int N);
+#undef THISTYPE
+#define THISTYPE int
+template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE short
+template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE char
+template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
