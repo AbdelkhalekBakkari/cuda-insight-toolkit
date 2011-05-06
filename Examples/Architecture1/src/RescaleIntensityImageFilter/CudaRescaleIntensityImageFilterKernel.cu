@@ -23,7 +23,7 @@ __global__ void MaxMinKernel(T *maxImage, T *minImage, int N)
 }
 
 template <class T>
-__global__ void RescaleIntensityKernel(T *output, T offset, float factor, T max, T min, int N)
+__global__ void RescaleIntensityKernel(T *output, float offset, float factor, T max, T min, int N)
 {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
    
@@ -36,7 +36,7 @@ __global__ void RescaleIntensityKernel(T *output, T offset, float factor, T max,
 }
 
 template <class T, class S>
-__global__ void RescaleIntensityKernel(S *output, T input, T offset, float factor, T max, T min, int N)
+__global__ void RescaleIntensityKernel(S *output, const T *input, float offset, float factor, T max, T min, int N)
 {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
    
@@ -49,12 +49,12 @@ __global__ void RescaleIntensityKernel(S *output, T input, T offset, float facto
 }
 
 template <class T, class S>
-void RescaleIntensityKernelFunction(const T* input, S*output, S outputMax, S outputMin, unsigned int N)
+void CudaRescaleIntensityKernelFunction(const T* input, S* output, S outputMax, S outputMin, unsigned int N)
 {
-  float *maxImage, *minImage; 
+  T *maxImage, *minImage; 
    
-  cudaMalloc((void **)&maxImage, sizeof(T)*N);
-  cudaMalloc((void **)&minImage, sizeof(T)*N);
+  cudaMalloc(&maxImage, sizeof(T)*N);
+  cudaMalloc(&minImage, sizeof(T)*N);
    
   cudaMemcpy(maxImage, input, sizeof(T)*N, cudaMemcpyDeviceToDevice);
   cudaMemcpy(minImage, input, sizeof(T)*N, cudaMemcpyDeviceToDevice);
@@ -106,21 +106,21 @@ void RescaleIntensityKernelFunction(const T* input, S*output, S outputMax, S out
 
 // versions we wish to compile
 #define THISTYPE float
-template void RescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
+template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
 #undef THISTYPE
 
 #define THISTYPE int
-template void RescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
+template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
 
 #undef THISTYPE
 
 #define THISTYPE short
-template void RescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
+template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
 
 #undef THISTYPE
 
 #define THISTYPE char
-template void RescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
+template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
 
 #undef THISTYPE
 
