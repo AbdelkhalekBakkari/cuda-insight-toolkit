@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Wednesday, December 23 2009, 16:35 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>

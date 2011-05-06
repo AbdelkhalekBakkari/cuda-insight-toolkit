@@ -1,2 +1,6 @@
-float * CudaRescaleIntensityKernelFunction(const float* input, unsigned int N, float outputMax, float outputMin);
+template <class T, class S> extern
+void CudaRescaleIntensityKernelFunction(const float* input, S* output,
+					S outputMax, 
+					S outputMin,
+					unsigned int N);
 
