@@ -8,5 +8,8 @@
  * File Description:
  *
  */
-float * MinimumImageKernelFunction(const float* input1, const float* input2, unsigned int N);
+template <class T, class S> extern
+void MinimumImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N);
+
+
 
