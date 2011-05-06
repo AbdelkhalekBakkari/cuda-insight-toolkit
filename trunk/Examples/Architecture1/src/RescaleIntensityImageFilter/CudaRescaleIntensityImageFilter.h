@@ -3,7 +3,7 @@
 #ifndef __itkCudaRescaleIntensityImageFilter_h
 #define __itkCudaRescaleIntensityImageFilter_h
 
-#include "itkCudaInPlaceImageFilter.h"
+#include "CudaInPlaceImageFilter.h"
 
 namespace itk
 {

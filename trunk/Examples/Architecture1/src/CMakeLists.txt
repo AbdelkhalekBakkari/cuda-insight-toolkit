@@ -541,4 +541,12 @@ ADD_TEST(GPU-ADDC2 ${TEST_COMMAND}
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 
 )
 
+ADD_TEST(CPU-RESCALEI ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-RESCALE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_rescale.mhd 1 50 150
+)
+
+ADD_TEST(GPU-RESCALE ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-RESCALE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_rescale.mhd 1 50 150
+		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_rescale.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_rescale.mhd 
+)
 
