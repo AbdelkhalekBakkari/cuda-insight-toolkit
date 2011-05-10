@@ -8,6 +8,8 @@ set(CUDA_PROPAGATE_HOST_FLAGS ON)
 # The cuda_include_directories adds paths to only cuda compilation.
 CUDA_INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/thrust
+  
   )
 
 # The include_directories adds paths to both C/C++ compilation in the native
@@ -541,12 +543,21 @@ ADD_TEST(GPU-ADDC2 ${TEST_COMMAND}
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_addc2.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_addc.mhd 
 )
 
-ADD_TEST(CPU-RESCALEI ${TEST_COMMAND}
+ADD_TEST(CPU-RESCALE ${TEST_COMMAND}
 		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-RESCALE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_rescale.mhd 1 50 150
 )
 
 ADD_TEST(GPU-RESCALE ${TEST_COMMAND}
 		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-RESCALE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_rescale.mhd 1 50 150
 		      --compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_rescale.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_rescale.mhd 
+)
+
+ADD_TEST(CPU-STATS ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-CPU-STATISTICS ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_stats.mhd 
+)
+
+ADD_TEST(GPU-STATS ${TEST_COMMAND}
+		      ${CMAKE_CURRENT_BINARY_DIR}/ITK-GPU-STATISTICS ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_stats.mhd 
+		      #--compare ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/gpu_rescale.mhd ${CMAKE_CURRENT_SOURCE_DIR}/TestOutputs/cpu_rescale.mhd 
 )
 

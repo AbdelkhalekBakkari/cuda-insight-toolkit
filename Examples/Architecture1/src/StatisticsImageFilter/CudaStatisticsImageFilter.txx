@@ -159,7 +159,7 @@ CudaStatisticsImageFilter< TInputImage >
 ::AllocateOutputs()
 {
   // Pass the input through as the output
-  InputImagePointer image =
+  typename InputImageType::Pointer image =
     const_cast< TInputImage * >( this->GetInput() );
 
   this->GraftOutput(image);
@@ -180,30 +180,24 @@ void CudaStatisticsImageFilter<TInputImage>::GenerateData()
   // Get Total Size
   const unsigned long N = input->GetPixelContainer()->Size();
 
-  StatisticsStruct * stats = new StatisticsStruct();
-
-  stats->Count = NumericTraits<float>::Zero;
-  stats->Sum = NumericTraits<float>::Zero;
-  stats->SumOfSquares = NumericTraits<float>::Zero;
-  stats->Minimum = NumericTraits<float>::max();
-  stats->Maximum = NumericTraits<float>::NonpositiveMin();
-
   // Pointer for output array of output pixel type
 
-  StatisticsImageKernelFunction<Input(output->GetDevicePtr(), stats, N);
+  PixelType Maximum=NumericTraits<PixelType>::NonpositiveMin(), Minimum=NumericTraits<PixelType>::max();
+  float Sum=NumericTraits<float>::Zero, SumOfSquares=NumericTraits<float>::Zero;
 
-  // Set output array to output image
-  output->GetPixelContainer()->SetDevicePointer(ptr, N, true);
+  StatisticsImageKernelFunction<PixelType>(input->GetDevicePointer(), Minimum, Maximum, Sum, 
+					   SumOfSquares, N);
+  
+  float Variance = (SumOfSquares - (Sum * Sum / N)) / (N - 1);
 
-  TInputImage * inputPtr = const_cast<TInputImage*> (this->GetInput());
-  inputPtr->GetPixelContainer()->SetContainerManageDevice(false);
 
-  this->GetMinimumOutput()->Set(stats->Minimum);
-  this->GetMaximumOutput()->Set(stats->Maximum);
-  this->GetMeanOutput()->Set(stats->Mean);
-  this->GetSigmaOutput()->Set(stats->Sigma);
-  this->GetVarianceOutput()->Set(stats->Variance);
-  this->GetSumOutput()->Set(stats->Sum);
+  this->GetMinimumOutput()->Set(Minimum);
+  this->GetMaximumOutput()->Set(Maximum);
+  this->GetMeanOutput()->Set(Sum / N);
+  this->GetSigmaOutput()->Set(sqrtf(Variance));
+  this->GetVarianceOutput()->Set(Variance);
+  this->GetSumOutput()->Set(Sum);
+
 }
 
 }

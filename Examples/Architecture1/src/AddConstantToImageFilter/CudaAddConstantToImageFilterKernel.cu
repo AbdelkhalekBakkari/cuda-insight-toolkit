@@ -12,6 +12,8 @@
 #include <cuda.h>
 #include <cutil.h>
 
+#include <thrust/transform.h>
+
 template <class S>
 __global__ void AddConstantToImageKernel(S *output, int N, S C)
 {
@@ -48,6 +50,27 @@ void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N,
 
 }
 
+// template <typename S>
+// struct addC
+// {
+//     const S a;
+
+//     addC(S _a) : a(_a) {}
+
+//     __host__ __device__
+//         S operator()(const float& x) const { 
+//             return a + x;
+//         }
+// };
+
+// template<class T, class S>
+// void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N, T C)
+// {
+//   thrust::device_ptr<const T> i1(input);
+//   thrust::device_ptr<S> o1(output);
+//   thrust::transform(i1, i1 + N, o1, addC<S>(C));
+
+// }
 // versions we wish to compile
 #define THISTYPE float
 template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, unsigned int N, THISTYPE C);

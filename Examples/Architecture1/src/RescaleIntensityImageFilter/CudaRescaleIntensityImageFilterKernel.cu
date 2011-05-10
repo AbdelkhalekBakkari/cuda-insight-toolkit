@@ -2,6 +2,8 @@
 #include <cuda.h>
 #include <cutil.h>
 
+#include <thrust/reduce.h>
+
 template <class T>
 __global__ void MaxMinKernel(T *maxImage, T *minImage, int N)
 {
@@ -51,46 +53,41 @@ __global__ void RescaleIntensityKernel(S *output, const T *input, float offset, 
 template <class T, class S>
 void CudaRescaleIntensityKernelFunction(const T* input, S* output, S outputMax, S outputMin, unsigned int N)
 {
-  T *maxImage, *minImage; 
-   
-  cudaMalloc(&maxImage, sizeof(T)*N);
-  cudaMalloc(&minImage, sizeof(T)*N);
-   
-  cudaMemcpy(maxImage, input, sizeof(T)*N, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(minImage, input, sizeof(T)*N, cudaMemcpyDeviceToDevice);
 
   // Compute execution configuration 
   int blockSize = 256;
   int nBlocks = N/(blockSize*2) + (N%(blockSize*2) == 0?0:1);
 
   // Call kernel
-  MaxMinKernel <<< nBlocks, blockSize >>> (maxImage, minImage, N/2);
+  T *tmpImage; // we will use this for the max and min calculations
+  cudaMalloc(&tmpImage, sizeof(T)*N);
+  cudaMemcpy(tmpImage, input, sizeof(T)*N, cudaMemcpyDeviceToDevice);
+
+
+  thrust::device_ptr<T> dptr(tmpImage);
+
+  T inputMax = thrust::reduce(dptr, dptr+N, std::numeric_limits<T>::min(), thrust::maximum<T>());
+  T inputMin = thrust::reduce(dptr, dptr+N, std::numeric_limits<T>::max(), thrust::minimum<T>());
+
    
-   
-  T *inputMax, *inputMin;
-  inputMax = (T*) malloc(sizeof(T));
-  inputMin = (T*) malloc(sizeof(T));
-   
-  cudaMemcpy(inputMax, maxImage, sizeof(T), cudaMemcpyDeviceToHost);
-  cudaMemcpy(inputMin, minImage, sizeof(T), cudaMemcpyDeviceToHost);
-   
+  cudaFree(tmpImage);
   float m_Factor = 0;
   float m_Offset = 0;
    
-  if (inputMin[0] != inputMax[0])
+  if (inputMin != inputMax)
     {
-    m_Factor = (outputMax-outputMin) / (inputMax[0]-inputMin[0]);
+    m_Factor = (outputMax-outputMin) / (inputMax-inputMin);
     }
-  else if (inputMax[0] != 0)
+  else if (inputMax != 0)
     {
-    m_Factor = (outputMax-outputMin) / (inputMax[0]);
+    m_Factor = (outputMax-outputMin) / (inputMax);
     }  		
   else
     {
     m_Factor = 0;
     }
    
-  m_Offset = outputMin-inputMin[0] * m_Factor;
+  m_Offset = outputMin-inputMin * m_Factor;
    
   nBlocks = N/(blockSize) + (N%blockSize == 0?0:1);
 
@@ -99,8 +96,6 @@ void CudaRescaleIntensityKernelFunction(const T* input, S* output, S outputMax, 
   else
     RescaleIntensityKernel <<< nBlocks, blockSize >>> (output, input, m_Offset, m_Factor, outputMax, outputMin, N);
 
-  cudaFree(maxImage);
-  cudaFree(minImage);
    
 }
 

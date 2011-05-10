@@ -13,27 +13,25 @@
 
 #include "itkImage.h"
 #include "itkStatisticsImageFilter.h"
-#include "CudaTests.h"
+#include "CudaTest.h"
 
 using namespace std;
 
 int main(int argc, char **argv) 
 {
-  int nFilters = atoi(argv[3]);
-  bool InPlace = (bool)atoi(argv[4]);
   const unsigned Dimension = 2;
-  typedef float InputPixelType;
-  typedef float OutputPixelType;
+  typedef unsigned char InputPixelType;
+  typedef unsigned char OutputPixelType;
 
   typedef itk::Image<InputPixelType, Dimension> InputImageType;
   typedef itk::Image<OutputPixelType, Dimension> OutputImageType;
-  typedef itk::StatisticsImageFilter<InputImageType, OutputImageType> FilterType;
+  typedef itk::StatisticsImageFilter<InputImageType> FilterType;
   FilterType::Pointer filter = FilterType::New();
 
-  int status = CudaTest1a<FilterType, InputImageType, OutputImageType>(nFilters, InPlace, argv[1], argv[2]);
+  int status = CudaTest1b<FilterType, InputImageType, OutputImageType>(argv[1], argv[2], filter);
   cout << "Statistic Output" << endl;
-  cout << "Minimum: " << filter->GetMinimum() << endl;
-  cout << "Maximum: " << filter->GetMaximum() << endl;
+  cout << "Minimum: " << (int)filter->GetMinimum() << endl;
+  cout << "Maximum: " << (int)filter->GetMaximum() << endl;
   cout << "Mean: " << filter->GetMean() << endl;
   cout << "Sigma: " << filter->GetSigma() << endl;
   cout << "Variance: " << filter->GetVariance() << endl;

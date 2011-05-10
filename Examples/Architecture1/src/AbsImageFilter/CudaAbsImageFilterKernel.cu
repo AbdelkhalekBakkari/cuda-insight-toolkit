@@ -10,7 +10,9 @@
  */
 #include <stdio.h>
 #include <cuda.h>
-//#include <cutil.h>
+
+// #include "thrust/transform.h"
+// #include "thrust/functional.h"
 
 template <class T>
 __global__ void AbsImageKernel(T *output, int N)
@@ -54,6 +56,26 @@ void AbsImageKernelFunction(const T * input, S * output, unsigned int N)
      }
 
 }
+
+// template <typename T> 
+// struct ABS 
+// { 
+//     __host__ __device__ 
+//         T operator()(const T& x) const { 
+//             return abs(x); 
+//         } 
+// }; 
+
+
+// template <class T, typename S>
+// void AbsImageKernelFunction(const T * input, S * output, unsigned int N)
+// {
+//   thrust::device_ptr<const T> i1(input);
+//   thrust::device_ptr<S> o1(output);
+//   // absolute_value is deprecated in thrust - not sure what to replace
+//   // it with
+//   thrust::transform(i1, i1 + N, o1, ABS<S>());
+// }
 
 // versions we wish to compile
 #define THISFUNC AbsImageKernelFunction

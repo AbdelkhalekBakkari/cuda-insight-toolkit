@@ -34,7 +34,7 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   for (unsigned int i = 0; i < 3; ++i) {
@@ -70,7 +70,7 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   // Set Up Output File and Write Image
@@ -86,10 +86,10 @@ int CudaTest2(int nFilters, bool InPlace, char * in1, char * in2, char * out1)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 
 
 }
@@ -119,7 +119,7 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   for (unsigned int i = 0; i < 3; ++i) {
@@ -153,7 +153,7 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   // Set Up Output File and Write Image
@@ -169,10 +169,10 @@ int CudaTest1(int nFilters, bool InPlace, char * in1, char * out1)
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 
 
 }
@@ -203,7 +203,7 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
     {
     cerr << "Reader caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   for (unsigned int i = 0; i < 3; ++i) {
@@ -231,7 +231,7 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   // Set Up Output File and Write Image
@@ -247,10 +247,86 @@ int CudaTest1a(bool InPlace, char * in1, char * out1,
     {
     cerr << "Filter caused problem." << endl;
     cerr << exp << endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
+
+
+}
+
+template <class FilterType, class InputImageType, class OutputImageType>
+int CudaTest1b(char * in1, char * out1,
+	       typename FilterType::Pointer filter)
+{
+  double start, end;
+  typedef typename InputImageType::PixelType InputPixelType;
+  typedef typename OutputImageType::PixelType OutputPixelType;
+  const unsigned int Dimension = InputImageType::ImageDimension;
+
+  // IO Types
+  // typedef itk::RGBPixel< InputPixelType >       PixelType;
+  typedef typename itk::ImageFileReader<InputImageType> ReaderType;
+  typedef typename itk::ImageFileWriter<OutputImageType> WriterType;
+
+  // Set Up Input File and Read Image
+  typename ReaderType::Pointer reader1 = ReaderType::New();
+  reader1->SetFileName(in1);
+
+  try
+    {
+    reader1->Update();
+    }
+  catch (itk::ExceptionObject exp)
+    {
+    cerr << "Reader caused problem." << endl;
+    cerr << exp << endl;
+    return EXIT_FAILURE;
+    }
+
+  for (unsigned int i = 0; i < 3; ++i) {
+  if (i < Dimension) {
+  cout
+    << reader1->GetOutput()->GetLargestPossibleRegion().GetSize()[i]
+    << ", ";
+  } else {
+  cout << 1 << ", ";
+  }
+  }
+
+
+  filter->SetInput(0,reader1->GetOutput());
+  try
+    {
+    start = getTime();
+    filter->Update();
+    end = getTime();
+    cout << end - start << endl;
+    }
+  catch (itk::ExceptionObject exp)
+    {
+    cerr << "Filter caused problem." << endl;
+    cerr << exp << endl;
+    return EXIT_FAILURE;
+    }
+
+  // Set Up Output File and Write Image
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName(out1);
+  writer->SetInput(filter->GetOutput());
+
+  try
+    {
+    writer->Update();
+    }
+  catch (itk::ExceptionObject exp)
+    {
+    cerr << "Filter caused problem." << endl;
+    cerr << exp << endl;
+    return EXIT_FAILURE;
+    }
+
+  return EXIT_SUCCESS;
 
 
 }
