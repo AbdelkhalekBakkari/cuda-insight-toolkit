@@ -1294,7 +1294,7 @@ index 0000000..0f9d66e
 +  set(CUDA_ADDITIONAL_CLEAN_FILES "" CACHE INTERNAL "List of intermediate files that are part of the cuda dependency scanning.")
 +endmacro(CUDA_BUILD_CLEAN_TARGET)
 diff --git CMake/cuda/FindCUDA/make2cmake.cmake CMake/cuda/FindCUDA/make2cmake.cmake
-new file mode 100755
+new file mode 100644
 index 0000000..7fce167
 --- /dev/null
 +++ CMake/cuda/FindCUDA/make2cmake.cmake
@@ -1497,7 +1497,7 @@ index 0000000..2518c68
 +
 +
 diff --git CMake/cuda/FindCUDA/run_nvcc.cmake CMake/cuda/FindCUDA/run_nvcc.cmake
-new file mode 100755
+new file mode 100644
 index 0000000..d7fde75
 --- /dev/null
 +++ CMake/cuda/FindCUDA/run_nvcc.cmake
@@ -1800,6 +1800,19 @@ index 0b839c7..c549aa9 100644
 +if(NOT CUDA_FOUND)                                            
 +   message("CUDA could not be located on your system.")       
 +endif(NOT CUDA_FOUND)                                         
+diff --git Code/BasicFilters/itkTileImageFilter.txx Code/BasicFilters/itkTileImageFilter.txx
+index 1c397b6..2c14d51 100644
+--- Code/BasicFilters/itkTileImageFilter.txx
++++ Code/BasicFilters/itkTileImageFilter.txx
+@@ -79,7 +79,7 @@ TileImageFilter<TInputImage, TOutputImage>
+         }
+       OutputImageRegionType tempRegion(tempIndex, tempSize);
+       tempImage->SetRegions(tempRegion);
+-      tempImage->SetPixelContainer(const_cast<ImportImageContainer<unsigned long, InputPixelType> *>(this->GetInput(it.Get().m_ImageNumber)->GetPixelContainer()));
++      tempImage->SetPixelContainer(const_cast<CudaImportImageContainer<unsigned long, InputPixelType> *>(this->GetInput(it.Get().m_ImageNumber)->GetPixelContainer()));
+       paste->SetSourceImage(tempImage);
+       paste->SetDestinationIndex(it.Get().m_Region.GetIndex());
+       paste->SetSourceRegion(tempRegion);
 diff --git Code/Common/CMakeLists.txt Code/Common/CMakeLists.txt
 index 55749ea..8f66d32 100644
 --- Code/Common/CMakeLists.txt
@@ -1813,12 +1826,492 @@ index 55749ea..8f66d32 100644
  
  TARGET_LINK_LIBRARIES (ITKCommon itkvnl_inst itksys)
  IF(UNIX)
+diff --git Code/Common/CudaImageToImageFilter.h Code/Common/CudaImageToImageFilter.h
+new file mode 100644
+index 0000000..aea13fc
+--- /dev/null
++++ Code/Common/CudaImageToImageFilter.h
+@@ -0,0 +1,72 @@
++
++#ifndef __itkCudaImageToImageFilter_h
++#define __itkCudaImageToImageFilter_h
++
++#include "itkImage.h"
++#include "itkConceptChecking.h"
++#include "itkImageToImageFilter.h"
++
++namespace itk
++{
++
++/** \class CudaImageToImageFilter
++**/
++template <class TInputImage, class TOutputImage>
++class ITK_EXPORT CudaImageToImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
++{
++public:
++  /** Standard class typedefs. */
++  typedef CudaImageToImageFilter         Self;
++  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
++  typedef SmartPointer<Self>         Pointer;
++  typedef SmartPointer<const Self>   ConstPointer;
++
++
++  /** Run-time type information (and related methods). */
++  itkTypeMacro(CudaImageToImageFilter, ImageToImageFilter);
++
++  /** Superclass typedefs. */
++  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
++  typedef typename Superclass::OutputImagePixelType  OutputImagePixelType;
++
++  typedef typename TOutputImage::Pointer OutputImagePointer;
++  /** Some convenient typedefs. */
++  typedef TInputImage                             InputImageType;
++  typedef typename InputImageType::Pointer        InputImagePointer;
++  typedef typename InputImageType::ConstPointer   InputImageConstPointer;
++  typedef typename InputImageType::RegionType     InputImageRegionType;
++  typedef typename InputImageType::PixelType      InputImagePixelType;
++
++  /** ImageDimension constants */
++  itkStaticConstMacro(InputImageDimension, unsigned int,
++                      TInputImage::ImageDimension);
++  itkStaticConstMacro(OutputImageDimension, unsigned int,
++                      TOutputImage::ImageDimension);
++
++protected:
++  CudaImageToImageFilter();
++  ~CudaImageToImageFilter();
++  virtual void AllocateOutputs();
++
++private:
++  CudaImageToImageFilter(const Self&); //purposely not implemented
++  void operator=(const Self&); //purposely not implemented
++};
++
++} // end namespace itk
++
++// Define instantiation macro for this template.
++#define ITK_TEMPLATE_CudaImageToImageFilter(_, EXPORT, x, y) namespace itk { \
++    _(2(class EXPORT ImageToImageFilter< ITK_TEMPLATE_2 x >))		\
++      namespace Templates { typedef ImageToImageFilter< ITK_TEMPLATE_2 x > ImageToImageFilter##y; } \
++  }
++
++#if ITK_TEMPLATE_EXPLICIT
++# include "Templates/CudaImageToImageFilter+-.h"
++#endif
++
++#if ITK_TEMPLATE_TXX
++# include "CudaImageToImageFilter.txx"
++#endif
++
++#endif
+diff --git Code/Common/CudaImageToImageFilter.txx Code/Common/CudaImageToImageFilter.txx
+new file mode 100644
+index 0000000..e397f3a
+--- /dev/null
++++ Code/Common/CudaImageToImageFilter.txx
+@@ -0,0 +1,84 @@
++/*=========================================================================
++
++  Program:   Insight Segmentation & Registration Toolkit
++  Module:    CudaImageToImageFilter.txx
++  Language:  C++
++  Date:      $Date$
++  Version:   $Revision$
++
++  Copyright (c) Insight Software Consortium. All rights reserved.
++  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
++
++  Portions of this code are covered under the VTK copyright.
++  See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
++
++     This software is distributed WITHOUT ANY WARRANTY; without even
++     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++     PURPOSE.  See the above copyright notices for more information.
++
++=========================================================================*/
++#ifndef __itkCudaImageToImageFilter_txx
++#define __itkCudaImageToImageFilter_txx
++#include "CudaImageToImageFilter.h"
++
++
++namespace itk
++{
++
++/**
++ *
++ */
++template <class TInputImage, class TOutputImage>
++CudaImageToImageFilter<TInputImage,TOutputImage>
++::CudaImageToImageFilter()
++{
++  // Modify superclass default values, can be overridden by subclasses
++  this->SetNumberOfRequiredInputs(1);
++}
++
++/**
++ *
++ */
++template <class TInputImage, class TOutputImage>
++CudaImageToImageFilter<TInputImage,TOutputImage>
++::~CudaImageToImageFilter()
++{
++}
++
++template <class TInputImage, class TOutputImage>
++void
++CudaImageToImageFilter<TInputImage,TOutputImage>
++::AllocateOutputs()
++{
++  typedef ImageBase<OutputImageDimension> ImageBaseType;
++  typename ImageBaseType::Pointer outputPtr;
++
++  // Allocate the output memory
++  for (unsigned int i=0; i < this->GetNumberOfOutputs(); i++)
++    {
++
++    // Check whether the output is an image of the appropriate
++    // dimension (use ProcessObject's version of the GetInput()
++    // method since it returns the input as a pointer to a
++    // DataObject as opposed to the subclass version which
++    // static_casts the input to an TInputImage).
++    outputPtr = dynamic_cast< ImageBaseType *>( this->ProcessObject::GetOutput(i) );
++
++    if ( outputPtr )
++      {
++//       outputPtr->SetBufferedRegion( outputPtr->GetRequestedRegion() );
++//       outputPtr->AllocateGPU();
++      // may not be the best way of doing this. Casting loses the
++      // AllocateGPU method
++      OutputImagePointer op2 = this->GetOutput(i);
++      op2->SetBufferedRegion( outputPtr->GetRequestedRegion() );
++      op2->AllocateGPU();
++      }
++    }
++}
++
++
++
++} // end namespace itk
++
++#endif
+diff --git Code/Common/CudaInPlaceImageFilter.h Code/Common/CudaInPlaceImageFilter.h
+new file mode 100644
+index 0000000..9044a35
+--- /dev/null
++++ Code/Common/CudaInPlaceImageFilter.h
+@@ -0,0 +1,167 @@
++/*=========================================================================
++
++  Program:   Insight Segmentation & Registration Toolkit
++  Module:    CudaInPlaceImageFilter.h
++  Language:  C++
++  Date:      $Date$
++  Version:   $Revision$
++
++  Copyright (c) Insight Software Consortium. All rights reserved.
++  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
++
++     This software is distributed WITHOUT ANY WARRANTY; without even
++     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++     PURPOSE.  See the above copyright notices for more information.
++
++=========================================================================*/
++#ifndef __itkCudaInPlaceImageFilter_h
++#define __itkCudaInPlaceImageFilter_h
++
++#include "itkImageToImageFilter.h"
++
++namespace itk
++{
++
++/** \class CudaInPlaceImageFilter
++ * \brief Base class for filters that take an image as input and overwrite that image as the output
++ *
++ * CudaInPlaceImageFilter is the base class for all process objects whose
++ * output image data is constructed by overwriting the input image
++ * data. In other words, the output bulk data is the same block of
++ * memory as the input bulk data.  This filter provides the mechanisms
++ * for in place image processing while maintaining general pipeline
++ * mechanics. CudaInPlaceImageFilters use less memory than standard
++ * ImageToImageFilters because the input buffer is reused as the
++ * output buffer.  However, this benefit does not come without a cost.
++ * Since the filter overwrites its input, the ownership of the bulk
++ * data is transitioned from the input data object to the output data
++ * object.  When a data object has multiple consumers with one
++ * of the consumers being an in place filter, the in place filter
++ * effectively destroys the bulk data for the data object. Upstream
++ * filters will then have to re-execute to regenerate the data object's
++ * bulk data for the remaining consumers.
++ *
++ * Since an CudaInPlaceImageFilter reuses the input bulk data memory for the
++ * output bulk data memory, the input image type must match the output
++ * image type.  If the input and output image types are not identical,
++ * the filter reverts to a traditional ImageToImageFilter behaviour
++ * where an output image is allocated.  In place operation can also be
++ * controlled (when the input and output image type match) via the
++ * methods InPlaceOn() and InPlaceOff().
++ *
++ * Subclasses of CudaInPlaceImageFilter must take extra care in how they
++ * manage memory using (and perhaps overriding) the implementations of
++ * ReleaseInputs() and AllocateOutputs() provided here.
++ *
++ * We need a special version for Cuda enabled filters because there
++ * isn't a way of creating an output image via Allocate that only has
++ * Device memory. Therefore we need to call the special AllocateGPU
++ * \ingroup ImageFilters
++ */
++template <class TInputImage, class TOutputImage=TInputImage>
++class ITK_EXPORT CudaInPlaceImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
++{
++public:
++  /** Standard class typedefs. */
++  typedef CudaInPlaceImageFilter                             Self;
++  typedef ImageToImageFilter<TInputImage, TOutputImage>  Superclass;
++  typedef SmartPointer<Self>                             Pointer;
++  typedef SmartPointer<const Self>                       ConstPointer;
++
++
++  /** Run-time type information (and related methods). */
++  itkTypeMacro(CudaInPlaceImageFilter,ImageToImageFilter);
++
++  /** Superclass typedefs. */
++  typedef typename Superclass::OutputImageType       OutputImageType;
++  typedef typename Superclass::OutputImagePointer    OutputImagePointer;
++  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
++  typedef typename Superclass::OutputImagePixelType  OutputImagePixelType;
++
++  /** Some convenient typedefs. */
++  typedef TInputImage                             InputImageType;
++  typedef typename InputImageType::Pointer        InputImagePointer;
++  typedef typename InputImageType::ConstPointer   InputImageConstPointer;
++  typedef typename InputImageType::RegionType     InputImageRegionType;
++  typedef typename InputImageType::PixelType      InputImagePixelType;
++
++  /** ImageDimension constants */
++  itkStaticConstMacro(InputImageDimension, unsigned int,
++                      TInputImage::ImageDimension);
++  itkStaticConstMacro(OutputImageDimension, unsigned int,
++                      TOutputImage::ImageDimension);
++
++  /** In place operation can be turned on and off. Asking for
++   * in-place operation, i.e. calling SetInplace(true) or InplaceOn(),
++   * will be effective only if CanRunInPlace also returns true.
++   * By default CanRunInPlace checks whether the input and output
++   * image type match. */
++  itkSetMacro(InPlace, bool);
++  itkGetConstMacro(InPlace, bool);
++  itkBooleanMacro(InPlace);
++
++  /** Can the filter run in place? To do so, the filter's first input
++   * and output must have the same dimension and pixel type. This
++   * method can be used in conjunction with the InPlace ivar to
++   * determine whether a particular use of the filter is really
++   * running in place. Some filters may be able to optimize their
++   * operation if the InPlace is true and CanRunInPlace is true.
++   * CanRunInPlace may also be overridded by CudaInPlaceImageFilter
++   * subclasses to fine tune its behavior. */
++  virtual bool CanRunInPlace() const
++    {
++    return (typeid(TInputImage) == typeid(TOutputImage));
++    }
++
++protected:
++  CudaInPlaceImageFilter();
++  ~CudaInPlaceImageFilter();
++
++  virtual void PrintSelf(std::ostream& os, Indent indent) const;
++
++  /** The GenerateData method normally allocates the buffers for all
++   * of the outputs of a filter. Since CudaInPlaceImageFilter's can use an
++   * overwritten version of the input for its output, the output
++   * buffer should not be allocated. When possible, we graft the input
++   * to the filter to the output.  If an InPlaceFilter has multiple
++   * outputs, then it would need to override this method to graft one
++   * of its outputs and allocate the remaining. Cuda filters will need
++   * to call this explicitly from inside GenerateData. */
++  virtual void AllocateOutputs();
++
++  /** CudaInPlaceImageFilter may transfer ownership of the input bulk data
++   * to the output object.  Once the output object owns the bulk data
++   * (done in AllocateOutputs()), the input object must release its
++   * hold on the bulk data.  ProcessObject::ReleaseInputs() only
++   * releases the input bulk data when the user has set the
++   * ReleaseDataFlag.  CudaInPlaceImageFilter::ReleaseInputs() also
++   * releases the input that it has overwritten.
++   *
++   * \sa ProcessObject::ReleaseInputs() */
++  virtual void ReleaseInputs();
++
++private:
++  CudaInPlaceImageFilter(const Self&); //purposely not implemented
++  void operator=(const Self&); //purposely not implemented
++
++  bool m_InPlace;
++
++};
++
++} // end namespace itk
++
++// Define instantiation macro for this template.
++#define ITK_TEMPLATE_CudaInPlaceImageFilter(_, EXPORT, x, y) namespace itk { \
++  _(2(class EXPORT CudaInPlaceImageFilter< ITK_TEMPLATE_2 x >)) \
++  namespace Templates { typedef CudaInPlaceImageFilter< ITK_TEMPLATE_2 x > CudaInPlaceImageFilter##y; } \
++  }
++
++#if ITK_TEMPLATE_EXPLICIT
++# include "Templates/CudaInPlaceImageFilter+-.h"
++#endif
++
++#if ITK_TEMPLATE_TXX
++# include "CudaInPlaceImageFilter.txx"
++#endif
++
++#endif
+diff --git Code/Common/CudaInPlaceImageFilter.txx Code/Common/CudaInPlaceImageFilter.txx
+new file mode 100644
+index 0000000..f0be2ea
+--- /dev/null
++++ Code/Common/CudaInPlaceImageFilter.txx
+@@ -0,0 +1,133 @@
++/*=========================================================================
++
++  Program:   Insight Segmentation & Registration Toolkit
++  Module:    CudaInPlaceImageFilter.txx
++  Language:  C++
++  Date:      $Date$
++  Version:   $Revision$
++
++  Copyright (c) Insight Software Consortium. All rights reserved.
++  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
++
++     This software is distributed WITHOUT ANY WARRANTY; without even
++     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++     PURPOSE.  See the above copyright notices for more information.
++
++=========================================================================*/
++#ifndef __itkCudaInPlaceImageFilter_txx
++#define __itkCudaInPlaceImageFilter_txx
++
++#include "CudaInPlaceImageFilter.h"
++
++namespace itk
++{
++
++/**
++ *
++ */
++template <class TInputImage, class TOutputImage>
++CudaInPlaceImageFilter<TInputImage, TOutputImage>
++::CudaInPlaceImageFilter()
++  : m_InPlace(true)
++{
++}
++
++/**
++ *
++ */
++template <class TInputImage, class TOutputImage>
++CudaInPlaceImageFilter<TInputImage, TOutputImage>
++::~CudaInPlaceImageFilter()
++{
++}
++
++
++
++template<class TInputImage, class TOutputImage>
++void
++CudaInPlaceImageFilter<TInputImage, TOutputImage>
++::PrintSelf(std::ostream& os, Indent indent) const
++{
++  Superclass::PrintSelf(os, indent);
++  os << indent << "InPlace: " << (m_InPlace ? "On" : "Off") << std::endl;
++  if ( this->CanRunInPlace())
++    {
++    os << indent << "The input and output to this filter are the same type. The filter can be run in place." << std::endl;
++    }
++  else
++    {
++    os << indent << "The input and output to this filter are different types. The filter cannot be run in place." << std::endl;
++    }
++}
++
++template<class TInputImage, class TOutputImage>
++void
++CudaInPlaceImageFilter<TInputImage, TOutputImage>
++::AllocateOutputs()
++{
++  // if told to run in place and the types support it,
++  if (this->GetInPlace() && this->CanRunInPlace())
++    {
++    // Graft this first input to the output.  Later, we'll need to
++    // remove the input's hold on the bulk data.
++    //
++    OutputImagePointer inputAsOutput
++      = dynamic_cast<TOutputImage *>(const_cast<TInputImage *>(this->GetInput()));
++    if (inputAsOutput)
++      {
++      // trigger the import here
++      inputAsOutput->GetDevicePointer();
++      this->GraftOutput( inputAsOutput );
++      }
++    }
++  else
++    {
++    // if we cannot cast the input to an output type, then allocate
++    // an output usual.
++    OutputImagePointer outputPtr;
++    outputPtr = this->GetOutput(0);
++    outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
++    outputPtr->AllocateGPU();
++    }
++
++
++
++  // If there are more than one outputs, allocate the remaining outputs
++  for (unsigned int i=1; i < this->GetNumberOfOutputs(); i++)
++    {
++    OutputImagePointer outputPtr;
++
++    outputPtr = this->GetOutput(i);
++    outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
++      outputPtr->AllocateGPU();
++    }
++}
++
++template<class TInputImage, class TOutputImage>
++void
++CudaInPlaceImageFilter<TInputImage, TOutputImage>
++::ReleaseInputs()
++{
++  // if told to run in place and the types support it,
++  if (this->GetInPlace() && this->CanRunInPlace())
++    {
++    // Release any input where the ReleaseData flag has been set
++    ProcessObject::ReleaseInputs();
++
++    // Release input 0 by default since we overwrote it
++    TInputImage * ptr = const_cast<TInputImage*>( this->GetInput() );
++    if( ptr )
++      {
++      ptr->ReleaseData();
++      }
++    }
++  else
++    {
++    Superclass::ReleaseInputs();
++    }
++}
++
++
++} // end namespace itk
++
++#endif
 diff --git Code/Common/itkCudaImportImageContainer.h Code/Common/itkCudaImportImageContainer.h
 new file mode 100644
-index 0000000..2249a5d
+index 0000000..22cbf9f
 --- /dev/null
 +++ Code/Common/itkCudaImportImageContainer.h
-@@ -0,0 +1,259 @@
+@@ -0,0 +1,261 @@
 +/*=========================================================================
 +
 +Program:   Insight Segmentation & Registration Toolkit
@@ -1830,8 +2323,8 @@ index 0000000..2249a5d
 +Copyright (c) Insight Software Consortium. All rights reserved.
 +See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 +
-+This software is distributed WITHOUT ANY WARRANTY; without even 
-+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
++This software is distributed WITHOUT ANY WARRANTY; without even
++the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 +PURPOSE.  See the above copyright notices for more information.
 +
 +=========================================================================*/
@@ -1847,7 +2340,7 @@ index 0000000..2249a5d
 +namespace itk
 +{
 +
-+   /** \class ImportImageContainer
++/** \class ImportImageContainer
 +    * Defines an itk::Image front-end to a standard C-array. This container
 +    * conforms to the ImageContainerInterface. This is a full-fleged Object,
 +    * so there is modification time, debug, and reference count information.
@@ -1864,99 +2357,99 @@ index 0000000..2249a5d
 +    * \ingroup IOFilters
 +    */
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      class CudaImportImageContainer:  
-+         public ImportImageContainer <TElementIdentifier, TElement>
-+   {
-+      public:
-+         /** Standard class typedefs. */
-+         typedef CudaImportImageContainer  Self;
-+         typedef ImportImageContainer<TElementIdentifier, TElement>      Superclass;
-+         typedef SmartPointer<Self>        Pointer;
-+         typedef SmartPointer<const Self>  ConstPointer;
++template <typename TElementIdentifier, typename TElement>
++class CudaImportImageContainer:
++    public ImportImageContainer <TElementIdentifier, TElement>
++{
++public:
++  /** Standard class typedefs. */
++  typedef CudaImportImageContainer  Self;
++  typedef ImportImageContainer<TElementIdentifier, TElement>      Superclass;
++  typedef SmartPointer<Self>        Pointer;
++  typedef SmartPointer<const Self>  ConstPointer;
 +
-+         /** Save the template parameters. */
-+         typedef TElementIdentifier  ElementIdentifier;
-+         typedef TElement            Element;
++  /** Save the template parameters. */
++  typedef TElementIdentifier  ElementIdentifier;
++  typedef TElement            Element;
 +
-+         /** Method for creation through the object factory. */
-+         itkNewMacro(Self);
++  /** Method for creation through the object factory. */
++  itkNewMacro(Self);
 +
-+         /** Standard part of every itk Object. */
-+         itkTypeMacro(CudaImportImageContainer, ImportImageContainer);
++  /** Standard part of every itk Object. */
++  itkTypeMacro(CudaImportImageContainer, ImportImageContainer);
 +
-+         /** Get the pointer from which the image data is imported. */
-+         TElement *GetImportPointer() 
-+         { 
-+            if (ImageLocation==GPU) { CopyToCPU(); ImageLocation=CPU; }
-+            return m_ImportPointer; 
-+         };
++  /** Get the pointer from which the image data is imported. */
++  TElement *GetImportPointer()
++  {
++    if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
++    return m_ImportPointer;
++  };
 +
-+         TElement *GetImportPointer() const
-+         {
-+            if (ImageLocation==GPU) { CopyToCPU(); ImageLocation=BOTH; }
-+            return m_DevicePointer;
-+         };
++  TElement *GetImportPointer() const
++  {
++    if (m_ImageLocation==GPU) { CopyToCPU(); }
++    return m_DevicePointer;
++  };
 +
-+         TElement *GetDevicePointer() 
-+         { 
-+            if (ImageLocation==CPU) { CopyToGPU(); ImageLocation=GPU; }
-+            return m_DevicePointer;
-+         };
++  TElement *GetDevicePointer()
++  {
++    if (m_ImageLocation==CPU) { CopyToGPU(); }
++    return m_DevicePointer;
++  };
 +
-+         TElement *GetDevicePointer() const
-+         {
-+            if (ImageLocation==CPU) { CopyToGPU(); ImageLocation=BOTH; }
-+            return m_DevicePointer;
-+         };
-+
-+
++  // TElement *GetDevicePointer() const
++//          {
++//             if (m_ImageLocation==CPU) { CopyToGPU(); m_ImageLocation=BOTH; }
++//             return m_DevicePointer;
++//          };
 +
 +
 +
 +
-+         /** Set the pointer from which the image data is imported.  "num" is
++
++
++  /** Set the pointer from which the image data is imported.  "num" is
 +          * the number of pixels in the block of memory. If
 +          * "LetContainerManageMemory" is false, then the application retains
 +          * the responsibility of freeing the memory for this image data.  If
 +          * "LetContainerManageMemory" is true, then this class will free the
 +          * memory when this object is destroyed. */
-+         void SetImportPointer(TElement *ptr, TElementIdentifier num,
-+               bool LetContainerManageMemory = false);
-+         void SetDevicePointer(TElement *ptr, TElementIdentifier
-+               num, bool LetContainerManageMemory = false);
++  void SetImportPointer(TElement *ptr, TElementIdentifier num,
++			bool LetContainerManageMemory = false);
++  void SetDevicePointer(TElement *ptr, TElementIdentifier
++			num, bool LetContainerManageMemory = false);
 +
-+         /** Index operator. This version can be an lvalue. */
-+         TElement & operator[](const ElementIdentifier id)
-+         { 
-+            if (ImageLocation==GPU) { CopyToCPU(); ImageLocation=CPU; }
-+            return m_ImportPointer[id]; 
-+         }
++  /** Index operator. This version can be an lvalue. */
++  TElement & operator[](const ElementIdentifier id)
++  {
++    if (m_ImageLocation==GPU) { CopyToCPU(); }
++    return m_ImportPointer[id];
++  }
 +
-+         /** Index operator. This version can only be an rvalue */
-+         const TElement & operator[](const ElementIdentifier id) const
-+         { 
-+            if (ImageLocation==GPU) { CopyToCPU(); }
-+            return m_ImportPointer[id]; 
-+         }
++  /** Index operator. This version can only be an rvalue */
++  const TElement & operator[](const ElementIdentifier id) const
++  {
++    if (m_ImageLocation==GPU) { CopyToCPU();}
++    return m_ImportPointer[id];
++  }
 +
-+         /** Return a pointer to the beginning of the buffer.  This is used by
++  /** Return a pointer to the beginning of the buffer.  This is used by
 +          * the image iterator class. */
-+         TElement *GetBufferPointer()
-+         {
-+            if (ImageLocation == GPU) { CopyToCPU(); ImageLocation=CPU; }
-+            return m_ImportPointer; 
-+         }
++  TElement *GetBufferPointer()
++  {
++    if (m_ImageLocation == GPU) { CopyToCPU();}
++    return m_ImportPointer;
++  }
 +
-+         /** Get the capacity of the container. */
-+         unsigned long Capacity(void) const
-+         { return (unsigned long) m_Capacity; }
++  /** Get the capacity of the container. */
++  unsigned long Capacity(void) const
++  { return (unsigned long) m_Capacity; }
 +
-+         /** Get the number of elements currently stored in the container. */
-+         unsigned long Size(void) const
-+         { return (unsigned long) m_Size; }
++  /** Get the number of elements currently stored in the container. */
++  unsigned long Size(void) const
++  { return (unsigned long) m_Size; }
 +
-+         /** Tell the container to allocate enough memory to allow at least
++  /** Tell the container to allocate enough memory to allow at least
 +          * as many elements as the size given to be stored.  If new memory
 +          * needs to be allocated, the contents of the old buffer are copied
 +          * to the new area.  The old buffer is deleted if the original pointer
@@ -1968,21 +2461,22 @@ index 0000000..2249a5d
 +          * semantics that is kept for backward compatibility reasons.
 +          *
 +          * \sa SetImportPointer() */
-+         void Reserve(ElementIdentifier num);
++  void Reserve(ElementIdentifier num);
++  void ReserveGPU(ElementIdentifier num);
 +
-+         /** Tell the container to try to minimize its memory usage for
++  /** Tell the container to try to minimize its memory usage for
 +          * storage of the current number of elements.  If new memory is
 +          * allocated, the contents of old buffer are copied to the new area.
 +          * The previous buffer is deleted if the original pointer was in
 +                * using "LetContainerManageMemory"=true.  The new buffer's memory
 +                * management will be handled by the container from that point on. */
-+               void Squeeze(void);
++  void Squeeze(void);
 +
-+         /** Tell the container to release any of its allocated memory. */
-+         void Initialize(void);
++  /** Tell the container to release any of its allocated memory. */
++  void Initialize(void);
 +
 +
-+         /** These methods allow to define whether upon destruction of this class
++  /** These methods allow to define whether upon destruction of this class
 +          *  the memory buffer should be released or not.  Setting it to true
 +          *  (or ON) makes that this class will take care of memory release.
 +          *  Setting it to false (or OFF) will prevent the destructor from
@@ -1991,83 +2485,84 @@ index 0000000..2249a5d
 +          *  Note that the normal logic of this class set the value of the boolean
 +          *  flag. This may override your setting if you call this methods prematurely.
 +          *  \warning Improper use of these methods will result in memory leaks */
-+         itkSetMacro(ContainerManageMemory,bool);
-+         itkGetConstMacro(ContainerManageMemory,bool);
-+         itkBooleanMacro(ContainerManageMemory);
-+         itkSetMacro(ContainerManageDevice,bool);
-+         itkGetConstMacro(ContainerManageDevice,bool);
-+         itkBooleanMacro(ContainerManageDevice);
++  itkSetMacro(ContainerManageMemory,bool);
++  itkGetConstMacro(ContainerManageMemory,bool);
++  itkBooleanMacro(ContainerManageMemory);
++  itkSetMacro(ContainerManageDevice,bool);
++  itkGetConstMacro(ContainerManageDevice,bool);
++  itkBooleanMacro(ContainerManageDevice);
 +
-+      protected:
-+         CudaImportImageContainer();
-+         virtual ~CudaImportImageContainer();
++protected:
++  CudaImportImageContainer();
++  virtual ~CudaImportImageContainer();
 +
-+         /** PrintSelf routine. Normally this is a protected internal method. It is
++  /** PrintSelf routine. Normally this is a protected internal method. It is
 +          * made public here so that Image can call this method.  Users should not
 +          * call this method but should call Print() instead. */
-+         void PrintSelf(std::ostream& os, Indent indent) const;
++  void PrintSelf(std::ostream& os, Indent indent) const;
 +
-+         virtual TElement* AllocateElements(ElementIdentifier size) const;
-+         virtual void DeallocateManagedMemory();
++  virtual TElement* AllocateElements(ElementIdentifier size) const;
++  virtual TElement* AllocateGPUElements(ElementIdentifier size) const;
++  virtual void DeallocateManagedMemory();
 +
-+         /* Set the m_Size member that represents the number of elements
++  /* Set the m_Size member that represents the number of elements
 +          * currently stored in the container. Use this function with great
 +          * care since it only changes the m_Size member and not the actual size
 +          * of the import pointer m_ImportPointer. It should typically
 +          * be used only to override AllocateElements and
 +          * DeallocateManagedMemory. */
-+         itkSetMacro(Size,TElementIdentifier);
++  itkSetMacro(Size,TElementIdentifier);
 +
-+         /* Set the m_Capacity member that represents the capacity of
++  /* Set the m_Capacity member that represents the capacity of
 +          * the current container. Use this function with great care
 +          * since it only changes the m_Capacity member and not the actual
 +          * capacity of the import pointer m_ImportPointer. It should typically
 +          * be used only to override AllocateElements and
 +          * DeallocateManagedMemory. */
-+         itkSetMacro(Capacity,TElementIdentifier);
++  itkSetMacro(Capacity,TElementIdentifier);
 +
 +
-+         /* Set the m_ImportPointer member. Use this function with great care
++  /* Set the m_ImportPointer member. Use this function with great care
 +          * since it only changes the m_ImportPointer member but not the m_Size
 +          * and m_Capacity members. It should typically be used only to override
 +          * AllocateElements and DeallocateManagedMemory. */
-+         void SetImportPointer(TElement *ptr)
-+            { m_ImportPointer=ptr; ImageLocation=CPU; }
-+         void SetDevicePointer(TElement *ptr)
-+            { m_DevicePointer=ptr; ImageLocation=GPU; }
++  void SetImportPointer(TElement *ptr)
++  { m_ImportPointer=ptr; m_ImageLocation=CPU; }
++  void SetDevicePointer(TElement *ptr)
++  { m_DevicePointer=ptr; m_ImageLocation=GPU; }
 +
-+      private:
-+         CudaImportImageContainer(const Self&); //purposely not implemented
-+         void operator=(const Self&); //purposely not implemented
++private:
++  CudaImportImageContainer(const Self&); //purposely not implemented
++  void operator=(const Self&); //purposely not implemented
 +
-+         void CopyToGPU() const;
-+         void CopyToCPU() const;
-+         void AllocateGPU() const;
-+         void AllocateCPU();
++  void CopyToGPU() const;
++  void CopyToCPU() const;
++  void AllocateGPU() const;
++  void AllocateCPU() const;
 +
-+         TElement            *m_ImportPointer;
-+         TElement            *m_DevicePointer;
-+         TElementIdentifier   m_Size;
-+         TElementIdentifier   m_Capacity;
-+         bool                 m_ContainerManageMemory;
-+         bool                 m_ContainerManageDevice;
++  mutable TElement    *m_ImportPointer;
++  mutable TElement            *m_DevicePointer;
++  TElementIdentifier   m_Size;
++  TElementIdentifier   m_Capacity;
++  bool                 m_ContainerManageMemory;
++  bool                 m_ContainerManageDevice;
 +
-+         int                  serial;
++  int                  serial;
 +
-+         mutable enum memoryStatus{
-+            BOTH,
-+            CPU,
-+            GPU
-+         } ImageLocation;
-+   };
++  mutable enum memoryStatus{
++    BOTH,
++    CPU,
++    GPU
++  } m_ImageLocation;
++};
 +
 +} // end namespace itk
 +
 +// Define instantiation macro for this template.
 +#define ITK_TEMPLATE_CudaImportImageContainer(_, EXPORT, x, y) namespace itk { \
-+   _(2(class EXPORT CudaImportImageContainer< ITK_TEMPLATE_2 x >)) \
-+   namespace Templates { typedef CudaImportImageContainer<ITK_TEMPLATE_2 x > CudaImportImageContainer##y; } \
-+}
++    _(2(class EXPORT CudaImportImageContainer< ITK_TEMPLATE_2 x >))	\
++      namespace Templates { typedef CudaImportImageContainer<ITK_TEMPLATE_2 x > CudaImportImageContainer##y; } \
++  }
 +
 +#if ITK_TEMPLATE_EXPLICIT
 +# include "Templates/itkCudaImportImageContainer+-.h"
@@ -2080,27 +2575,24 @@ index 0000000..2249a5d
 +#endif
 diff --git Code/Common/itkCudaImportImageContainer.txx Code/Common/itkCudaImportImageContainer.txx
 new file mode 100644
-index 0000000..40163d9
+index 0000000..b14aef4
 --- /dev/null
 +++ Code/Common/itkCudaImportImageContainer.txx
-@@ -0,0 +1,318 @@
+@@ -0,0 +1,397 @@
 +/*=========================================================================
 +
-+Program:   Insight Segmentation & Registration Toolkit
-+Module:    $RCSfile: itkImportImageContainer.txx,v $
-+Language:  C++
-+Date:      $Date: 2009-04-05 19:10:47 $
-+Version:   $Revision: 1.23 $
++  Program:   Insight Segmentation & Registration Toolkit
++  Module:    itkCudaImportImageContainer.h
++  Language:  C++
++  Date:      $Date$
++  Version:   $Revision$
 +
-+Copyright (c) Insight Software Consortium. All rights reserved.
-+See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
++  Copyright (c) Insight Software Consortium. All rights reserved.
++  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 +
-+Portions of this code are covered under the VTK copyright.
-+See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
-+
-+This software is distributed WITHOUT ANY WARRANTY; without even 
-+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-+PURPOSE.  See the above copyright notices for more information.
++     This software is distributed WITHOUT ANY WARRANTY; without even
++     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
++     PURPOSE.  See the above copyright notices for more information.
 +
 +=========================================================================*/
 +#ifndef __itkCudaImportImageContainer_txx
@@ -2116,137 +2608,184 @@ index 0000000..40163d9
 +namespace itk
 +{
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      CudaImportImageContainer<TElementIdentifier , TElement>
-+      ::CudaImportImageContainer()
-+      {
-+         serial = (int)(rand()/10000000); 
-+         ImageLocation = CPU;
-+         m_DevicePointer = 0;
-+         m_ImportPointer = 0;
-+         m_ContainerManageMemory = true;
-+         m_ContainerManageDevice = true;
-+         m_Capacity = 0;
-+         m_Size = 0;
-+      }
++template <typename TElementIdentifier, typename TElement>
++CudaImportImageContainer<TElementIdentifier , TElement>
++::CudaImportImageContainer()
++{
++  //serial = (int)(rand()/10000000);
++  m_ImageLocation = CPU;
++  m_DevicePointer = 0;
++  m_ImportPointer = 0;
++  m_ContainerManageMemory = true;
++  m_ContainerManageDevice = true;
++  m_Capacity = 0;
++  m_Size = 0;
++}
 +
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::~CudaImportImageContainer()
-+      {
-+         DeallocateManagedMemory();
-+      }
++template <typename TElementIdentifier, typename TElement>
++CudaImportImageContainer< TElementIdentifier , TElement >
++::~CudaImportImageContainer()
++{
++  DeallocateManagedMemory();
++}
 +
 +
-+   /**
++/**
 +    * Tell the container to allocate enough memory to allow at least
-+    * as many elements as the size given to be stored.  
++    * as many elements as the size given to be stored.
 +    */
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::Reserve(ElementIdentifier size)
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::Reserve(ElementIdentifier size)
++{
++  //std::cout << serial <<" Reserving CPU " << std::endl;
++
++  /* Parent Class */
++  if (m_ImportPointer)
++    {
++    if (size > m_Capacity)
 +      {
-+         //std::cout << serial <<" Reserving CPU " << std::endl;
++      TElement* temp = this->AllocateElements(size);
++      // only copy the portion of the data used in the old buffer
 +
-+         /* Parent Class */
-+         if (m_ImportPointer)
-+         {
-+            if (size > m_Capacity)
-+            {
-+               TElement* temp = this->AllocateElements(size);
-+               // only copy the portion of the data used in the old buffer
++      memcpy(temp, m_ImportPointer, m_Size*sizeof(TElement));
 +
-+               memcpy(temp, m_ImportPointer, m_Size*sizeof(TElement));
++      DeallocateManagedMemory();
 +
-+               DeallocateManagedMemory();
-+
-+               m_ImportPointer = temp;
-+               m_ContainerManageMemory = true;
-+               m_Capacity = size;
-+               m_Size = size;
-+               this->Modified();
-+            }
-+            else
-+            {
-+               m_Size = size;
-+               this->Modified();
-+            }
-+         }
-+         else
-+         {
-+            m_ImportPointer = this->AllocateElements(size);
-+            m_Capacity = size;
-+            m_Size = size;
-+            m_ContainerManageMemory = true;
-+            this->Modified();
-+         }
-+         //std::cout << serial << " Reserved CPU " << std::endl;
++      m_ImportPointer = temp;
++      m_ContainerManageMemory = true;
++      m_Capacity = size;
++      m_Size = size;
++      this->Modified();
 +      }
++    else
++      {
++      m_Size = size;
++      this->Modified();
++      }
++    }
++  else
++    {
++    m_ImportPointer = this->AllocateElements(size);
++    m_Capacity = size;
++    m_Size = size;
++    m_ContainerManageMemory = true;
++    this->Modified();
++    }
++  //std::cout << serial << " Reserved CPU " << std::endl;
++}
++
++/**
++    * Tell the container to allocate enough memory to allow at least
++    * as many elements as the size given to be stored.
++    */
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::ReserveGPU(ElementIdentifier size)
++{
++  //std::cout << serial <<" Reserving CPU " << std::endl;
++
++  /* Parent Class */
++  if (m_DevicePointer)
++    {
++    if (size > m_Capacity)
++      {
++      TElement* temp = this->AllocateGPUElements(size);
++      // only copy the portion of the data used in the old buffer
++
++      cudaMemcpy(temp, m_DevicePointer, m_Size*sizeof(TElement), cudaMemcpyDeviceToDevice);
++
++      DeallocateManagedMemory();
++
++      m_DevicePointer = temp;
++      m_ContainerManageMemory = true;
++      m_Capacity = size;
++      m_Size = size;
++      this->Modified();
++      }
++    else
++      {
++      m_Size = size;
++      this->Modified();
++      }
++    }
++  else
++    {
++    m_DevicePointer = this->AllocateGPUElements(size);
++    m_Capacity = size;
++    m_Size = size;
++    m_ContainerManageMemory = true;
++    this->Modified();
++    }
++  m_ImageLocation = GPU;
++  //std::cout << serial << " Reserved CPU " << std::endl;
++}
 +
 +
-+   /**
++/**
 +    * Tell the container to try to minimize its memory usage for storage of
-+    * the current number of elements.  
++    * the current number of elements.
 +    */
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::Squeeze(void)
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::Squeeze(void)
++{
++  //std::cout << serial << " Squeezing CPU " << std::endl;
++
++  /* Parent Code */
++  if (m_ImportPointer)
++    {
++    if (m_Size < m_Capacity)
 +      {
-+         //std::cout << serial << " Squeezing CPU " << std::endl;
++      const TElementIdentifier size = m_Size;
++      TElement* temp = this->AllocateElements(size);
++      memcpy(temp, m_ImportPointer, size*sizeof(TElement));
 +
-+         /* Parent Code */
-+         if (m_ImportPointer)
-+         {
-+            if (m_Size < m_Capacity)
-+            {
-+               const TElementIdentifier size = m_Size;
-+               TElement* temp = this->AllocateElements(size);
-+               memcpy(temp, m_ImportPointer, size*sizeof(TElement));
++      DeallocateManagedMemory();
 +
-+               DeallocateManagedMemory();
++      m_ImportPointer = temp;
++      m_ContainerManageMemory = true;
++      m_Capacity = size;
++      m_Size = size;
 +
-+               m_ImportPointer = temp;
-+               m_ContainerManageMemory = true;
-+               m_Capacity = size;
-+               m_Size = size;
-+
-+               this->Modified();
-+            }
-+         }
-+
-+         //std::cout << serial << " Squeezed CPU " << std::endl;
++      this->Modified();
 +      }
++    }
++
++  //std::cout << serial << " Squeezed CPU " << std::endl;
++}
 +
 +
-+   /**
++/**
 +    * Tell the container to try to minimize its memory usage for storage of
-+    * the current number of elements.  
++    * the current number of elements.
 +    */
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::Initialize(void)
-+      {
-+         //std::cout << serial << " Initializing CPU " << std::endl;
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::Initialize(void)
++{
++  //std::cout << serial << " Initializing CPU " << std::endl;
 +
-+         /* Parent code */
-+         if (m_ImportPointer)
-+         {
-+            DeallocateManagedMemory();
++  /* Parent code */
++  if (m_ImportPointer)
++    {
++    DeallocateManagedMemory();
 +
-+            m_ContainerManageMemory = true;
++    m_ContainerManageMemory = true;
 +
-+            this->Modified();
-+         }
-+         
-+         //std::cout << serial << " Initialized CPU " << std::endl;
-+      }
++    this->Modified();
++    }
++
++  //std::cout << serial << " Initialized CPU " << std::endl;
++}
 +
 +
-+   /**
++/**
 +    * Set the pointer from which the image data is imported.  "num" is
 +    * the number of pixels in the block of memory. If
 +    * "LetContainerManageMemory" is false, then the application retains
@@ -2254,156 +2793,191 @@ index 0000000..40163d9
 +    * "LetContainerManageMemory" is true, then this class will free the
 +    * memory when this object is destroyed.
 +    */
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::SetImportPointer(TElement *ptr, TElementIdentifier num,
-+            bool LetContainerManageMemory)
-+      {
-+         DeallocateManagedMemory();
-+         m_ImportPointer = ptr;
-+         m_ContainerManageMemory = LetContainerManageMemory;
-+         m_Capacity = num;
-+         m_Size = num;
-+         AllocateGPU();
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::SetImportPointer(TElement *ptr, TElementIdentifier num,
++		   bool LetContainerManageMemory)
++{
++  DeallocateManagedMemory();
++  m_ImportPointer = ptr;
++  m_ContainerManageMemory = LetContainerManageMemory;
++  m_Capacity = num;
++  m_Size = num;
++  //AllocateGPU();
 +
-+         this->Modified();
-+         ImageLocation = CPU;
-+      }
++  this->Modified();
++  m_ImageLocation = CPU;
++}
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier, TElement >
-+      ::SetDevicePointer(TElement *ptr, TElementIdentifier num,
-+            bool LetContainerManageDevice)
-+      {
-+         DeallocateManagedMemory();
-+         m_DevicePointer = ptr;
-+         m_ContainerManageDevice = LetContainerManageDevice;
-+         m_Capacity = num;
-+         m_Size = num;
-+         AllocateCPU();
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier, TElement >
++::SetDevicePointer(TElement *ptr, TElementIdentifier num,
++		   bool LetContainerManageDevice)
++{
++  DeallocateManagedMemory();
++  m_DevicePointer = ptr;
++  m_ContainerManageDevice = LetContainerManageDevice;
++  m_Capacity = num;
++  m_Size = num;
++  this->Modified();
++  m_ImageLocation = GPU;
++}
 +
-+         this->Modified();
-+         ImageLocation = GPU;
-+      }
++template <typename TElementIdentifier, typename TElement>
++TElement* CudaImportImageContainer< TElementIdentifier , TElement >
++::AllocateElements(ElementIdentifier size) const
++{
++  // Encapsulate all image memory allocation here to throw an
++  // exception when memory allocation fails even when the compiler
++  // does not do this by default.
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      TElement* CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::AllocateElements(ElementIdentifier size) const
-+      {
-+         // Encapsulate all image memory allocation here to throw an
-+         // exception when memory allocation fails even when the compiler
-+         // does not do this by default.
++  /* Parent code */
++  TElement* data;
++  try
++    {
++    data = new TElement[size];
++    }
++  catch(...)
++    {
++    data = 0;
++    }
++  if(!data)
++    {
++    // We cannot construct an error string here because we may be out
++    // of memory.  Do not use the exception macro.
++    throw MemoryAllocationError(__FILE__, __LINE__,
++				"Failed to allocate memory for image.",
++				ITK_LOCATION);
++    }
++  return data;
 +
-+         /* Parent code */
-+            TElement* data;
-+            try
-+            {
-+            data = new TElement[size];
-+            }
-+            catch(...)
-+            {
-+            data = 0;
-+            }
-+            if(!data)
-+            {
-+         // We cannot construct an error string here because we may be out
-+         // of memory.  Do not use the exception macro.
-+         throw MemoryAllocationError(__FILE__, __LINE__,
-+         "Failed to allocate memory for image.",
-+         ITK_LOCATION);
-+         }
-+         return data;
-+          
-+      }
++}
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::DeallocateManagedMemory()
-+      {
-+         // CPU Deallocate
-+         if (m_ImportPointer && m_ContainerManageMemory)
-+         {
-+            delete [] m_ImportPointer;
-+         }
++template <typename TElementIdentifier, typename TElement>
++TElement* CudaImportImageContainer< TElementIdentifier , TElement >
++::AllocateGPUElements(ElementIdentifier size) const
++{
++  // Encapsulate all image memory allocation here to throw an
++  // exception when memory allocation fails even when the compiler
++  // does not do this by default.
 +
-+         // GPU Deallocate
-+         if (m_DevicePointer && m_ContainerManageDevice)
-+         {
-+            cudaFree(m_DevicePointer);
-+         }
-+         
-+         m_DevicePointer = 0;
-+         m_ImportPointer = 0;
-+         m_Capacity = 0;
-+         m_Size = 0;
-+      }
++  /* Parent code */
++  TElement* data;
++  try
++    {
++    void * m_Tmp;
++    cudaMalloc( &m_Tmp, sizeof(TElement)*size);
++    data = (TElement *)m_Tmp;
++    }
++  catch(...)
++    {
++    data = 0;
++    }
++  if(!data)
++    {
++    // We cannot construct an error string here because we may be out
++    // of memory.  Do not use the exception macro.
++    throw MemoryAllocationError(__FILE__, __LINE__,
++				"Failed to allocate GPU memory for image.",
++				ITK_LOCATION);
++    }
++  return data;
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::PrintSelf(std::ostream& os, Indent indent) const
-+      {
-+         Superclass::PrintSelf(os,indent);
++}
 +
-+         os << indent << "Pointer: " << static_cast<void *>(m_ImportPointer) << std::endl;
-+         os << indent << "Container manages memory: "
-+            << (m_ContainerManageMemory ? "true" : "false") << std::endl;
-+         os << indent << "Container manages device memory: "
-+            << (m_ContainerManageDevice ? "true" : "false") << std::endl;
-+         os << indent << "Size: " << m_Size << std::endl;
-+         os << indent << "Capacity: " << m_Capacity << std::endl;
-+      }
++template <typename TElementIdentifier, typename TElement>
++void CudaImportImageContainer< TElementIdentifier , TElement >
++::DeallocateManagedMemory()
++{
++  // CPU Deallocate
++  if (m_ImportPointer && m_ContainerManageMemory)
++    {
++    delete [] m_ImportPointer;
++    }
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::CopyToGPU() const
-+      {
-+         std::cout << serial << " Copying to GPU " << std::endl;
++  // GPU Deallocate
++  if (m_DevicePointer && m_ContainerManageDevice)
++    {
++    cudaFree(m_DevicePointer);
++    }
 +
-+         AllocateGPU();
-+         cudaMemcpy(m_DevicePointer, m_ImportPointer,
-+               sizeof(TElement)*m_Size, cudaMemcpyHostToDevice);
++  m_DevicePointer = 0;
++  m_ImportPointer = 0;
++  m_Capacity = 0;
++  m_Size = 0;
++}
 +
-+         ImageLocation = BOTH;
-+      }
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::PrintSelf(std::ostream& os, Indent indent) const
++{
++  Superclass::PrintSelf(os,indent);
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void 
-+      CudaImportImageContainer< TElementIdentifier , TElement >
-+      ::CopyToCPU() const
-+      {
-+         std::cout << serial << " Copying to CPU " << std::endl;
++  os << indent << "Pointer: " << static_cast<void *>(m_ImportPointer) << std::endl;
++  os << indent << "DevPointer: " << static_cast<void *>(m_DevicePointer) << std::endl;
++  os << indent << "Image location: " << m_ImageLocation << std::endl;
++  os << indent << "Container manages memory: "
++     << (m_ContainerManageMemory ? "true" : "false") << std::endl;
++  os << indent << "Container manages device memory: "
++     << (m_ContainerManageDevice ? "true" : "false") << std::endl;
++  os << indent << "Size: " << m_Size << std::endl;
++  os << indent << "Capacity: " << m_Capacity << std::endl;
++}
 +
-+         cudaMemcpy(m_ImportPointer, m_DevicePointer,
-+               sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::CopyToGPU() const
++{
 +
-+         ImageLocation = BOTH;
-+      }
++  AllocateGPU();
++  cudaMemcpy(m_DevicePointer, m_ImportPointer,
++	     sizeof(TElement)*m_Size, cudaMemcpyHostToDevice);
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier, TElement >
-+      ::AllocateGPU() const
-+      {
-+         cudaMalloc((void **) &m_DevicePointer, sizeof(TElement)*m_Size);
-+      }
++  m_ImageLocation = GPU;
++}
 +
-+   template <typename TElementIdentifier, typename TElement>
-+      void
-+      CudaImportImageContainer< TElementIdentifier, TElement >
-+      ::AllocateCPU()
-+      {
-+         m_ImportPointer = (TElement *)malloc(sizeof(TElement)*m_Size);
-+      }
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier , TElement >
++::CopyToCPU() const
++{
++  AllocateCPU();
++  cudaMemcpy(m_ImportPointer, m_DevicePointer,
++	     sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
++
++  m_ImageLocation = CPU;
++}
++
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier, TElement >
++::AllocateGPU() const
++{
++  void * m_Tmp;
++  cudaMalloc( &m_Tmp, sizeof(TElement)*m_Size);
++  m_DevicePointer = (TElement *)m_Tmp;
++}
++
++template <typename TElementIdentifier, typename TElement>
++void
++CudaImportImageContainer< TElementIdentifier, TElement >
++::AllocateCPU() const
++{
++  // should only need to allocate CPU memory if the import
++  // pointer is null
++  if (!m_ImportPointer)
++    m_ImportPointer = (TElement *)malloc(sizeof(TElement)*m_Size);
++}
 +
 +} // end namespace itk
 +
 +#endif
 diff --git Code/Common/itkImage.h Code/Common/itkImage.h
-index 0c26606..0642f3e 100644
+index 0c26606..e58932b 100644
 --- Code/Common/itkImage.h
 +++ Code/Common/itkImage.h
 @@ -19,6 +19,7 @@
@@ -2424,7 +2998,15 @@ index 0c26606..0642f3e 100644
  
    /** Index typedef support. An index is used to access pixel values. */
    typedef typename Superclass::IndexType       IndexType;
-@@ -241,6 +243,14 @@ public:
+@@ -162,6 +164,7 @@ public:
+   /** Allocate the image memory. The size of the image must
+    * already be set, e.g. by calling SetRegions(). */
+   void Allocate();
++  void AllocateGPU();
+ 
+   /** Convenience methods to set the LargestPossibleRegion,
+    *  BufferedRegion and RequestedRegion. Allocate must still be called.
+@@ -241,6 +244,14 @@ public:
    const TPixel *GetBufferPointer() const
      { return m_Buffer ? m_Buffer->GetBufferPointer() : 0; }
  
@@ -2439,10 +3021,28 @@ index 0c26606..0642f3e 100644
    /** Return a pointer to the container. */
    PixelContainer* GetPixelContainer()
      { return m_Buffer.GetPointer(); }
-diff --git Testing/Data Testing/Data
-deleted file mode 160000
-index 60c53c9..0000000
---- Testing/Data
-+++ /dev/null
-@@ -1 +0,0 @@
--Subproject commit 60c53c94d4fb7ac1ca164939b0378b981ec98de2
+diff --git Code/Common/itkImage.txx Code/Common/itkImage.txx
+index 8d369dc..63c0f23 100644
+--- Code/Common/itkImage.txx
++++ Code/Common/itkImage.txx
+@@ -54,6 +54,20 @@ Image<TPixel, VImageDimension>
+ template<class TPixel, unsigned int VImageDimension>
+ void 
+ Image<TPixel, VImageDimension>
++::AllocateGPU()
++{
++  unsigned long num;
++
++  this->ComputeOffsetTable();
++  num = this->GetOffsetTable()[VImageDimension];
++  
++  m_Buffer->ReserveGPU(num);
++}
++
++
++template<class TPixel, unsigned int VImageDimension>
++void 
++Image<TPixel, VImageDimension>
+ ::Initialize()
+ {
+   //
