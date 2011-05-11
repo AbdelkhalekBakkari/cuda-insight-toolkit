@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
@@ -51,7 +41,7 @@ float * cuFunction(const float* input, unsigned int N)
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
 
-   // Call kernal
+   // Call kernel
    cuKernel <<< nBlocks, blockSize >>> (output, N);
 
    // Return pointer to the output

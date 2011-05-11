@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
@@ -40,7 +30,7 @@ void SubtractConstantFromImageKernelFunction(const T* input, S* output, unsigned
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
 
-   // Call kernal
+   // Call kernel
    if (output == input)
      SubtractConstantFromImageKernel <<< nBlocks, blockSize >>> (output, N, C);
    else
@@ -60,7 +50,7 @@ template void SubtractConstantFromImageKernelFunction<THISTYPE, THISTYPE>(const 
 template void SubtractConstantFromImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void SubtractConstantFromImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
 #undef THISTYPE
 

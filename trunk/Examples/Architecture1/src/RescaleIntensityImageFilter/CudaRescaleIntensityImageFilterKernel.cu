@@ -114,7 +114,7 @@ template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THIST
 
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void CudaRescaleIntensityKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE outputMax, THISTYPE outputMin, unsigned int N);
 
 #undef THISTYPE

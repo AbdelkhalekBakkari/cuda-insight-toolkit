@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
@@ -67,7 +57,7 @@ template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * i
 template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsgined char
 template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
 #undef THISTYPE
 

@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward, Richard Beare
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
@@ -45,7 +35,7 @@ void MaximumImageKernelFunction(const T* input1, const T* input2, S* output, uns
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-   // Call kernal
+   // Call kernel
    if (output == input1)
      MaximumImageKernel <<< nBlocks, blockSize >>> (output, input2, N);
    else
@@ -66,7 +56,7 @@ template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * in
 template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void MaximumImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
 #undef THISTYPE
 

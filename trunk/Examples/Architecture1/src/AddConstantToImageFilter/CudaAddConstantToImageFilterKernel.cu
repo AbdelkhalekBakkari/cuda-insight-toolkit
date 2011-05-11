@@ -42,7 +42,7 @@ void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N,
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
 
-   // Call kernal
+   // Call kernel
    if (output == input)
      AddConstantToImageKernel <<< nBlocks, blockSize >>> (output, N, C);
    else
@@ -83,7 +83,7 @@ template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYP
 template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE *output, unsigned int N, THISTYPE C);
 #undef THISTYPE
 

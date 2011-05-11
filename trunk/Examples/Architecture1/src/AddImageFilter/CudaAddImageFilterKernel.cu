@@ -34,7 +34,7 @@ void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigne
     int blockSize = 128;
     int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-    // Call kernal
+    // Call kernel
     if (output == input1)
       AddImageKernel <<< nBlocks, blockSize >>> (output, input2, N);
     else
@@ -76,6 +76,6 @@ template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1
 template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
 #undef THISTYPE

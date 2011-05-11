@@ -68,7 +68,7 @@ template void BinaryThresholdImageKernelFunction<THISTYPE, THISTYPE>(const THIST
 
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void BinaryThresholdImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, THISTYPE m_LowerThreshold, THISTYPE m_UpperThreshold, THISTYPE m_InsideValue, THISTYPE m_OutsideValue, unsigned int N);
 
 #undef THISTYPE
