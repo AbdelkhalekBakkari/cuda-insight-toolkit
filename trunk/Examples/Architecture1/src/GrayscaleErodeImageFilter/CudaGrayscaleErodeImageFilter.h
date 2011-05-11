@@ -2,7 +2,7 @@
 #ifndef __itkCudaGrayscaleErodeImageFilter_h
 #define __itkCudaGrayscaleErodeImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaImageToImageFilter.h"
 #include "itkNeighborhood.h"
 
 namespace itk {
@@ -25,19 +25,19 @@ namespace itk {
  *
  * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
  *
- * \sa ImageToImageFilter
+ * \sa CudaImageToImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters  CudaEnabled
  */
 
 
 template<class TInputImage, class TOutputImage, class TKernel>
-class ITK_EXPORT CudaGrayscaleErodeImageFilter: public ImageToImageFilter<TInputImage,
+class ITK_EXPORT CudaGrayscaleErodeImageFilter: public CudaImageToImageFilter<TInputImage,
 									  TOutputImage> {
 public:
 
   /** Standard class typedefs. */
   typedef CudaGrayscaleErodeImageFilter Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef CudaImageToImageFilter<TInputImage, TOutputImage> Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
@@ -46,16 +46,16 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaGrayscaleErodeImageFilter,
-	       ImageToImageFilter)	;
+	       CudaImageToImageFilter)	;
 
   typedef TInputImage                                   InputImageType;
   typedef TOutputImage                                  OutputImageType;
   typedef typename TInputImage::RegionType              RegionType;
   typedef typename TInputImage::SizeType                SizeType;
   typedef typename TInputImage::IndexType               IndexType;
-  typedef typename TInputImage::PixelType               PixelType;
+  typedef typename TInputImage::PixelType               InputPixelType;
   typedef typename Superclass::OutputImageRegionType    OutputImageRegionType;
-
+  typedef typename TOutputImage::PixelType              OutputPixelType;
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
@@ -84,13 +84,13 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
-		  (Concept::Convertible<PixelType, typename TOutputImage::PixelType>));
+		  (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(SameDimensionCheck1,
 		  (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(SameDimensionCheck2,
 		  (Concept::SameDimension<InputImageDimension, KernelDimension>));
   itkConceptMacro(InputLessThanComparableCheck,
-		  (Concept::LessThanComparable<PixelType>));
+		  (Concept::LessThanComparable<InputPixelType>));
   itkConceptMacro(KernelGreaterThanComparableCheck,
 		  (Concept::GreaterThanComparable<KernelPixelType>));
   /** End concept checking */

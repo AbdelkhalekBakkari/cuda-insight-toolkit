@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include "EclipseCompat.h"
 #include <stdio.h>
 #include <iostream>
@@ -123,11 +113,12 @@ __global__ void CudaMeanImageFilterKernelGlobal3D(T *output, int3 imageDim,
 				* radius.z + 1));
 	}
 }
-
-float * CudaMeanImageFilterKernelFunction(const float* input,
+template <class T, class S>
+void CudaMeanImageFilterKernelFunction(const T* input, S *output,
 		unsigned int imageDimX, unsigned int imageDimY, unsigned int imageDimZ,
 		unsigned int radiusX, unsigned int radiusY, unsigned int radiusZ,
-		unsigned int N) {
+		unsigned int N) 
+{
 
 	// Get device properties to compute block and grid size later
 	cudaDeviceProp devProp;
@@ -138,12 +129,9 @@ float * CudaMeanImageFilterKernelFunction(const float* input,
 		int3 radius = make_int3(radiusX, radiusY, radiusZ);
 		int3 imageDim = make_int3(imageDimX, imageDimY, imageDimZ);
 
-		float *output;
-		cudaMalloc((void**) &output, sizeof(float) * N);
-
 		// Allocate Cuda Array
 		cudaArray *texArray = 0;
-		cudaChannelFormatDesc cf = cudaCreateChannelDesc<float> ();
+		cudaChannelFormatDesc cf = cudaCreateChannelDesc<T> ();
 		cudaExtent const ext = { imageDim.x, imageDim.y, imageDim.z };
 		CUDA_SAFE_CALL(cudaMalloc3DArray(&texArray, &cf, ext));
 		CUT_CHECK_ERROR("Malloc 3D Array Failed\n");
@@ -154,8 +142,8 @@ float * CudaMeanImageFilterKernelFunction(const float* input,
 
 		// Copy Linear Device Memory into Cuda Array
 		cudaMemcpy3DParms copyParams = { 0 };
-		copyParams.srcPtr = make_cudaPitchedPtr(const_cast<float *> (input),
-				imageDim.x * sizeof(float), imageDim.x, imageDim.y);
+		copyParams.srcPtr = make_cudaPitchedPtr(const_cast<T *> (input),
+				imageDim.x * sizeof(T), imageDim.x, imageDim.y);
 		copyParams.dstArray = texArray;
 		copyParams.kind = cudaMemcpyDeviceToDevice;
 		copyParams.extent = ext;
@@ -203,7 +191,6 @@ float * CudaMeanImageFilterKernelFunction(const float* input,
 		cudaUnbindTexture(texRef3D);
 
 		// Return pointer to the output
-		return output;
 	}
 	// 2D Image
 	else {
@@ -211,14 +198,11 @@ float * CudaMeanImageFilterKernelFunction(const float* input,
 		int2 radius = make_int2(radiusX, radiusY);
 		int2 imageDim2 = make_int2(imageDimX, imageDimY);
 
-		float *output;
-		cudaMalloc((void**) &output, sizeof(float) * N);
-
 		// set up the CUDA array
-		cudaChannelFormatDesc cf = cudaCreateChannelDesc<float> ();
+		cudaChannelFormatDesc cf = cudaCreateChannelDesc<T> ();
 		cudaArray *texArray = 0;
 		cudaMallocArray(&texArray, &cf, imageDim2.x, imageDim2.y);
-		cudaMemcpyToArray(texArray, 0, 0, input, sizeof(float) * N,
+		cudaMemcpyToArray(texArray, 0, 0, input, sizeof(T) * N,
 				cudaMemcpyDeviceToDevice);
 
 		// specify mutable texture reference parameters
@@ -260,6 +244,40 @@ float * CudaMeanImageFilterKernelFunction(const float* input,
 		cudaUnbindTexture(texRef2D);
 
 		// Return pointer to the output
-		return output;
 	}
 }
+
+#define THISTYPE float
+template void CudaMeanImageFilterKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, THISTYPE * output, 
+							 unsigned int imageDimX, unsigned int imageDimY, 
+							 unsigned int imageDimZ,
+							 unsigned int radiusX, unsigned int radiusY, 
+							 unsigned int radiusZ,
+							 unsigned int N);
+#undef THISTYPE
+#define THISTYPE int
+template void CudaMeanImageFilterKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, THISTYPE * output, 
+							 unsigned int imageDimX, unsigned int imageDimY, 
+							 unsigned int imageDimZ,
+							 unsigned int radiusX, unsigned int radiusY, 
+							 unsigned int radiusZ,
+							 unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE short
+template void CudaMeanImageFilterKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, THISTYPE * output, 
+							 unsigned int imageDimX, unsigned int imageDimY, 
+							 unsigned int imageDimZ,
+							 unsigned int radiusX, unsigned int radiusY, 
+							 unsigned int radiusZ,
+							 unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE unsigned char
+template void CudaMeanImageFilterKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, THISTYPE * output, 
+							 unsigned int imageDimX, unsigned int imageDimY, 
+							 unsigned int imageDimZ,
+							 unsigned int radiusX, unsigned int radiusY, 
+							 unsigned int radiusZ,
+							 unsigned int N);
+#undef THISTYPE
