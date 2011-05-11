@@ -12,23 +12,18 @@
 #include <stdlib.h>
 
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
 #include "CudaMeanImageFilter.h"
-#include "itkMeanImageFilter.h"
-#include "timer.h"
+#include "CudaTest.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
-  double start, end;
 
   // Pixel Types
   typedef float InputPixelType;
   typedef float OutputPixelType;
   const unsigned int Dimension = 2;
-  int nFilters = atoi(argv[3]);
-  int rad = atoi(argv[4]);
+  int rad = atoi(argv[3]);
 
   // IO Types
   // typedef itk::RGBPixel< InputPixelType >       PixelType;
@@ -37,81 +32,12 @@ int main(int argc, char **argv) {
   typedef itk::ImageFileReader<InputImageType> ReaderType;
   typedef itk::ImageFileWriter<OutputImageType> WriterType;
 
-  typedef itk::CudaMeanImageFilter<InputImageType, OutputImageType>
-    FilterType;
-
-  // Set Up Input File and Read Image
-  ReaderType::Pointer reader1 = ReaderType::New();
-  reader1->SetFileName(argv[1]);
-
-  try {
-  reader1->Update();
-  } catch (itk::ExceptionObject exp) {
-  cerr << "Reader caused problem." << endl;
-  cerr << exp << endl;
-  return 1;
-  }
-
-  for (unsigned int i = 0; i < 3; ++i) {
-  if (i < Dimension) {
-  cout
-    << reader1->GetOutput()->GetLargestPossibleRegion().GetSize()[i]
-    << ", ";
-  } else {
-  cout << 1 << ", ";
-  }
-  }
-
+  typedef itk::CudaMeanImageFilter<InputImageType, OutputImageType> FilterType;
+  FilterType::Pointer filter = FilterType::New();
   InputImageType::SizeType radius;
-  for (unsigned int i = 0; i < Dimension; ++i) {
-  radius[i] = rad;
-  }
-
-  for (unsigned int i = 0; i < 3; ++i) {
-  if (i < Dimension) {
-  cout << rad << ", ";
-  } else {
-  cout << 1 << ", ";
-  }
-  }
-
-  FilterType::Pointer filter[nFilters];
-  filter[0] = FilterType::New();
-  filter[0]->SetInput(0, reader1->GetOutput());
-  filter[0]->SetRadius(radius);
-
-  for (int i = 1; i < nFilters; ++i) {
-  filter[i] = FilterType::New();
-  filter[i]->SetInput(0, filter[i - 1]->GetOutput());
-  filter[i]->SetRadius(radius);
-  }
-
-  try {
-  start = getTime();
-  filter[nFilters - 1]->Update();
-  end = getTime();
-  cout << end - start << endl;
-  } catch (itk::ExceptionObject exp) {
-  cerr << "Filter caused problem." << endl;
-  cerr << exp << endl;
-  return 1;
-  }
-
-  cout << argv[4] << endl;
-
-  // Set Up Output File and Write Image
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[2]);
-  writer->SetInput(filter[nFilters - 1]->GetOutput());
-
-  try {
-  writer->Update();
-  } catch (itk::ExceptionObject exp) {
-  cerr << "Filter caused problem." << endl;
-  cerr << exp << endl;
-  return 1;
-  }
-
-  return 0;
+  radius.Fill(rad);
+  filter->SetRadius(radius);
+  return(CudaTest1b<FilterType, InputImageType, OutputImageType>(argv[1], argv[2], filter));
 }
+
 

@@ -1,12 +1,5 @@
-/*
- * File Name:    CudaMeanImageFilterKernel.h
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Thursday, January 14 2010, 15:58
- * 
- * File Description:
- *
- */
-float * CudaMeanImageFilterKernelFunction(const float* input, unsigned int imageDimX, unsigned int imageDimY, unsigned int imageDimZ,
-		unsigned int radiusX, unsigned int radiusY, unsigned int radiusZ, unsigned int N);
+template <class T, class S> extern
+void CudaMeanImageFilterKernelFunction(const T* input, S *output, unsigned int imageDimX, 
+				       unsigned int imageDimY, unsigned int imageDimZ,
+				       unsigned int radiusX, unsigned int radiusY, 
+				       unsigned int radiusZ, unsigned int N);

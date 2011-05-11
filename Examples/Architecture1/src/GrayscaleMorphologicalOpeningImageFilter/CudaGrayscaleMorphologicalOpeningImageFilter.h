@@ -2,7 +2,7 @@
 #ifndef __itkCudaGrayscaleMorphologicalOpeningImageFilter_h
 #define __itkCudaGrayscaleMorphologicalOpeningImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "CudaImageToImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "CudaGrayscaleDilateImageFilter.h"
 #include "CudaGrayscaleErodeImageFilter.h"
@@ -27,18 +27,18 @@ namespace itk {
  *
  * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
  *
- * \sa ImageToImageFilter
+ * \sa CudaImageToImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters  CudaEnabled
  */
 
 template<class TInputImage, class TOutputImage, class TKernel>
-class ITK_EXPORT CudaGrayscaleMorphologicalOpeningImageFilter: public ImageToImageFilter<TInputImage,
+class ITK_EXPORT CudaGrayscaleMorphologicalOpeningImageFilter: public CudaImageToImageFilter<TInputImage,
 											 TOutputImage> {
 public:
 
   /** Standard class typedefs. */
   typedef CudaGrayscaleMorphologicalOpeningImageFilter Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef CudaImageToImageFilter<TInputImage, TOutputImage> Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
@@ -47,7 +47,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(CudaGrayscaleMorphologicalOpeningImageFilter,
-	       ImageToImageFilter)	;
+	       CudaImageToImageFilter)	;
 
   typedef TInputImage                                   InputImageType;
   typedef TOutputImage                                  OutputImageType;
