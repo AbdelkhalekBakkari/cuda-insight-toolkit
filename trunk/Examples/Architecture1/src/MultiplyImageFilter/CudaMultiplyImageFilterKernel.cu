@@ -57,7 +57,7 @@ template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * i
 template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
-#define THISTYPE unsgined char
+#define THISTYPE unsigned char
 template void MultiplyImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
