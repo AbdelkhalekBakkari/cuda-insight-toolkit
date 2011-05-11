@@ -90,7 +90,4 @@ template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * 
 template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * output, unsigned int N);
 #undef THISTYPE
 
-#define THISTYPE char
-template void  THISFUNC<THISTYPE, THISTYPE>(const THISTYPE * input,  THISTYPE * output, unsigned int N);
-#undef THISTYPE
 #undef THISFUNC

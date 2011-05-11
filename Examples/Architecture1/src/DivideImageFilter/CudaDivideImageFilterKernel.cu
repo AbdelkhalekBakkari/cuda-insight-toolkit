@@ -1,13 +1,3 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
@@ -42,7 +32,7 @@ void DivideImageKernelFunction(const T* input1, const T* input2, S *output, unsi
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
 
-   // Call kernal
+   // Call kernel
    if (output == input1)
      DivideImageKernel <<< nBlocks, blockSize >>> (output, input2, N, MAX);
    else
@@ -61,7 +51,7 @@ template void DivideImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * inp
 template void DivideImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N, THISTYPE MAX);
 #undef THISTYPE
 
-#define THISTYPE char
+#define THISTYPE unsigned char
 template void DivideImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N, THISTYPE MAX);
 #undef THISTYPE
 
