@@ -31,7 +31,7 @@ INCLUDE_DIRECTORIES(
    MaximumImageFilter
    MeanImageFilter
    MinimumImageFilter
-   MultiplyImageFilter2
+   MultiplyImageFilter
    MultiplyByConstantImageFilter
    NeighborhoodFilter
    RescaleIntensityImageFilter
@@ -145,7 +145,7 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-DIVIDEC
   ITKBasicFilters ITKCommon ITKIO
 )
 CUDA_ADD_EXECUTABLE(ITK-GPU-MULTIPLY 
- MultiplyImageFilter2/CudaMultiplyImageFilterKernel.cu
+ MultiplyImageFilter/CudaMultiplyImageFilterKernel.cu
  itk-gpu-multiply.cxx
  )
 TARGET_LINK_LIBRARIES ( ITK-GPU-MULTIPLY
