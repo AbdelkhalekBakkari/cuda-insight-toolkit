@@ -182,9 +182,19 @@ TARGET_LINK_LIBRARIES ( ITK-GPU-MULTIPLYC
   ITKBasicFilters ITKCommon ITKIO
 )
 
-   CUDA_ADD_EXECUTABLE(ITK-GPU-SUBTRACTC 
+CUDA_ADD_EXECUTABLE(ITK-GPU-SUBTRACTC 
  SubtractConstantFromImageFilter/CudaSubtractConstantFromImageFilterKernel.cu
  itk-gpu-subtractc.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-GPU-SUBTRACTC
+  ITKBasicFilters ITKCommon ITKIO
+)
+
+CUDA_ADD_EXECUTABLE(ITK-SIMPLE_PERF
+ SubtractConstantFromImageFilter/CudaSubtractConstantFromImageFilterKernel.cu
+ AddConstantToImageFilter/CudaAddConstantToImageFilterKernel.cu
+ StatisticsImageFilter/CudaStatisticsImageFilterKernel.cu
+ simple_perf_test.cxx
  )
  TARGET_LINK_LIBRARIES ( ITK-GPU-SUBTRACTC
   ITKBasicFilters ITKCommon ITKIO
