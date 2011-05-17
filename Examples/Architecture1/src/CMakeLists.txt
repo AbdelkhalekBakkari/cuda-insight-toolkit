@@ -200,6 +200,15 @@ CUDA_ADD_EXECUTABLE(ITK-SIMPLE-PERF
   ITKBasicFilters ITKCommon ITKIO
 )
 
+
+CUDA_ADD_EXECUTABLE(ITK-MEAN-PERF
+ MeanImageFilter/CudaMeanImageFilterKernel.cu
+ mean_perf_test.cxx
+ )
+ TARGET_LINK_LIBRARIES ( ITK-MEAN-PERF
+  ITKBasicFilters ITKCommon ITKIO
+)
+
 CUDA_ADD_EXECUTABLE(ITK-CPU-OPEN 
  itk-cpu-open.cxx
  )
