@@ -190,13 +190,13 @@ CUDA_ADD_EXECUTABLE(ITK-GPU-SUBTRACTC
   ITKBasicFilters ITKCommon ITKIO
 )
 
-CUDA_ADD_EXECUTABLE(ITK-SIMPLE_PERF
+CUDA_ADD_EXECUTABLE(ITK-SIMPLE-PERF
  SubtractConstantFromImageFilter/CudaSubtractConstantFromImageFilterKernel.cu
  AddConstantToImageFilter/CudaAddConstantToImageFilterKernel.cu
  StatisticsImageFilter/CudaStatisticsImageFilterKernel.cu
  simple_perf_test.cxx
  )
- TARGET_LINK_LIBRARIES ( ITK-GPU-SUBTRACTC
+ TARGET_LINK_LIBRARIES ( ITK-SIMPLE-PERF
   ITKBasicFilters ITKCommon ITKIO
 )
 
