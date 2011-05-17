@@ -1,13 +1,3 @@
-/*
- * File Name:    itk-gpu-minimum.cxx
- *
- * Author:        Phillip Ward, Richard Beare
- * Creation Date: Monday, December 21 2009, 14:15
- * Last Modified: Fri May  6 15:17:50 EST 2011
- *
- * File Description:
- *
- */
 #include <stdio.h>
 #include <stdlib.h>
 
