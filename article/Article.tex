@@ -25,7 +25,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % for pseudo code
 \usepackage{listings}
 % subfigures
-\usepackage{subfigure}
+%\usepackage{subfigure}
 
 
 %  This is a template for Papers to the Insight Journal. 
@@ -41,7 +41,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Richard Beare{$^1$}, Daniel Micevski, Chris Share\\Luke Parkinson, Phillip Ward, Mike Kuiper{$^2$}}
+\author{Richard Beare{$^1$}, Daniel Micevski, Chris Share\\Luke
+  Parkinson, Phillip Ward, Wojtek Goscinski{$1$}, Mike Kuiper{$^2$}}
 \authoraddress{{$^1$}Richard.Beare@monash.edu, Monash University, Melbourne, Australia\\
 {$^2$}mike@vpac.org, Victorian Partnership for Advanced Computing, Melbourne, Australia.}
 
@@ -90,7 +91,7 @@ standard filters have been implemented and extensive testing
 performed.
 
 \section{CITK Architecture}
-The aim of the architecture outline below was to allow GPU enabled
+The aim of the architecture outlined below was to allow GPU enabled
 filters to be included in an application without change of programming
 style or losing performance via redundant host to device memory copies. 
 
@@ -112,7 +113,7 @@ Neither of these options require a modification to core ITK classes.
 
 The approach used in CITK does require a modification to core ITK
 classes, but has a number of advantages. A similar approach has since
-been outlined on the ITK Wiki {\url http://www.cmake.org/Wiki/ITK_Release_4/GPU_Acceleration}.
+been outlined on the ITK Wiki \url{http://www.cmake.org/Wiki/ITK\_Release\_4/GPU\_Acceleration}.
 
 The fundamental component of the pipeline is the {\em itk::Image}
 class. Within this class is a pixel container called {\em
@@ -140,6 +141,12 @@ required and are completed transparent to both the developer and the
 user. This leaves all the responsibility on the architect, rather than
 the developer or the user such as in the other attempts.
 
+Some exceptions have been uncovered during this development. Minor
+changes have also been made to the {\em AllocateOutputs} method of the
+{\em itkInPlaceImageFilter} to support pipelines that connect in
+place, multi-threaded CPU filters to a CUDA filter. Other exceptions
+are discussed below.
+ 
 \subsection{Weaknesses}
 \begin{itemize}
 \item This framework only supports CUDA, and not OpenCL. The ITK 4.0
@@ -164,7 +171,10 @@ connecting CUDA enabled components to a CPU pipeline. This problem has
 been observed in the {\em itkStatisticsImageFilter}, which is a
 multi-threaded {\em ImageToImageFilter} with its own AllocateOutputs
 method passing input through to output. This bypasses the trigger to
-copy device memory back to the host, leading to incorrect results.
+copy device memory back to the host, leading to incorrect
+results. Other filters with unusual structure are likely to cause
+problems. The simple fix for such filters is to call {\em
+  GetBufferPointer} in the {\em AllocateOutputs} method.
 \end{itemize}
 
 \section{Installation and building}
@@ -176,18 +186,17 @@ of some sample filters.
 The code distributed with this article includes a patch to modify ITK 3.20. This can be applied as follows:
 
 \begin{itemize}
-\item {\url http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
+\item \url{http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
 \item extract
 \item cd ITK-3.20
-\item patch -p0 < path/to/patch.3.20.0.dif
+\item patch -p0 $<$ path/to/patch.3.20.0.dif 
 \end{itemize}
 
 Alternatviely, this code may currently be retrieved via git, as follows:
 \begin{itemize}
 \item git clone git://github.com/richardbeare/ITK.git
 \item cd ITK
-\item git checkout v3.20.0
-\item git branch v3.20.0_cuda
+\item git checkout v3.20.0\_cuda
 \end{itemize}
 
 \subsection{Build and install modified ITK}
@@ -200,11 +209,8 @@ required to avoid limitations to the CUDA development tools.
 \end{itemize}
 
 \subsection{Build examples}
-\subsection{Workarounds for nvcc weaknesses/bugs}
-\begin{itemize}
-  \item multiple include of SSE files - turn off SSE options for VNL - advanced/VNL.
-\end{itemize}
-
+The examples and tests are included in this package. The most up to
+date version of the package can be found at \url{http://code.google.com/p/cuda-insight-toolkit/}.
 
 \subsection{Changes to standard processes for building ITK applications}
 Typical application development in ITK utilizes templates and generic
@@ -240,6 +246,9 @@ within the {\em GenerateData} method. CUDA-enabled filters should
 never have {\em ThreadedGenerateData} methods as threading is provided
 within the CUDA portion.
 
+Pointers to device memory are obtained using the {\em
+  GetDevicePointer} method and are passed to CUDA kernel functions.
+
 \subsection{Memory management}
 Two base classes have been provided to handle standard filter memory
 management - {\em CudaInPlaceImageFilter} and {\em
@@ -262,6 +271,7 @@ void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigne
 \end{verbatim}
 
 The corresponding CudaAddImageFilterKernel.cu file contains:
+{\small
 \begin{verbatim}
 template <class T, class S>
 __global__ void AddImageKernel(T *output, const S *input, int N)
@@ -300,23 +310,108 @@ void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigne
 }
 
 #define THISTYPE float
-template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE * output, unsigned int N);
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, 
+                                                         const THISTYPE * input2, 
+                                                         THISTYPE * output, unsigned int N);
 #undef THISTYPE
 #define THISTYPE int
-template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, 
+                                                         const THISTYPE * input2,
+                                                         THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
 #define THISTYPE short
-template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1,
+                                                         const THISTYPE * input2,
+                                                         THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
 #define THISTYPE unsigned char
-template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, 
+                                                         const THISTYPE * input2,
+                                                         THISTYPE *output, unsigned int N);
 #undef THISTYPE
 
 \end{verbatim}
-
+}
 This is a simple structure that allows a number kernels to be precompiled for different voxel types.
+
+\subsection{Using {\em thrust} algorithms}
+The thrust project, \url{http://code.google.com/p/thrust/}, is a
+source of templated, CUDA-enabled algorithms. The
+CudaStatisticsImageFilter makes use of these algorithms. It is also
+possible to implement simple arithmetic filters using the thrust {\em
+  transform} algorithm (leading to more elegant code), but preliminary
+tests suggest a significant loss in performance. There are
+examples of thrust-based arithmetic in several sample filters that can
+be switched on with a cmake option.
+
+\section{Testing}
+The online testing within the Insight Journal does not support CUDA
+and therefore cannot be used to test this contribution.
+\subsection{ITK}
+Changes to ITK classes have been tested using standard ITK tests,
+producing the same results as an unmodified ITK.
+\subsection{Testing CUDA filters}
+A range of simple CUDA enabled filters have been developed and
+compared to the CPU equivalents. CMake based test are included in this
+contribution.
+
+\section{Performance}
+Improved computational performance is the reason for interest in GPU
+imaging applications. However there are many stories of how difficult
+this is to achieve in practice, and similar difficulties are likely to
+be experienced in the imaging domain. Some of the difficulties we
+forsee are:
+\begin{itemize}
+\item A real imaging application is likely to utilize a large number
+  of ITK filters. It is likely to be a long time before a significant
+  portion of ITK is CUDA (or GPU) enabled. Therefore a developer will
+  only experience a nett performance gain if the CUDA enabled filter
+  offers sufficient speedup to offset memory transfer costs and a
+  small proportion of the application is particularly time consuming.
+\item Filters that are easy to port to the GPU tend to be fast on CPU
+  anyway, and typically don't represent a large proportion of
+  application time. Examples include all voxel-wise operations, such
+  as masking and arithmetic.
+\item Many potentially time consuming operations, such as filtering
+  with large kernels, have been highly optimised for CPU
+  implementation. It is important the comparisons are made with these
+  optimised CPU implementations.
+\end{itemize}
+
+We won't discuss the mechanics of CUDA performance profiling in this
+article - there are many resources available online.
+
+One point worth noting when testing CUDA enabled ITK filters is that
+there is a per-process cost associated with running a CUDA-enabled
+application. This cost appears to relate to a number of things,
+including loading libraries and initializing the device. This cost can
+be very significant - as much as 2.5 seconds on one of our test
+machines - and can give an exagerated negative impression of the  filter
+performance. 
+
+Finally, some positive performance results. These tests were carried
+out using a Tesla T10 in a 16 core, 2261.051MHz, Intel L5520  Xeon:
+\begin{itemize}
+\item Performance improvement of 190 times observed with simple arithmetic, such as adding or subtracting constants from
+  images. See {\em simple\_perf\_test.cxx} for details.
+\item Image filtering with kernels, for example simple means, offer ??
+  for 3d kernels, radius 10 voxels on images size $500 \times 500
+  \times 500$. This is potentially interesting for applications
+  requiring kernels of specific shape, because most accelerated CPU
+  schemes can only implement a restricted range of shape kernels. The
+  accelerated CPU scheme used in this test uses a box filtering
+  approach that is limited to rectangular filters.
+\end{itemize}
+
+
+\section{Conclusions}
+We have provided some simple modifications to ITK infrastructure that
+allow integration of CUDA enabled filters with ITK applications, and
+provided a number of examples and validation tests. We hope this
+framework will encourage immediate experimentation with GPU filters
+and inform some of the GPU development scheduled for ITK 4.
 
 \bibliographystyle{plain}
 %\bibliography{local,InsightJournal}
