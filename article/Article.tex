@@ -142,9 +142,9 @@ the developer or the user such as in the other attempts.
 
 \subsection{Weaknesses}
 \begin{itemize}
-\item This framework only supports Cuda, and not OpenCL. The ITK 4.0
-proposal supports OpenCL. Limitations of the Cuda development
-environment mean that even Cuda integration is less complete than
+\item This framework only supports CUDA, and not OpenCL. The ITK 4.0
+proposal supports OpenCL. Limitations of the CUDA development
+environment mean that even CUDA integration is less complete than
 hoped, with significant changes to compilation processes being
 necessary (see below).
 \item A copy between host and device always results in the source of
@@ -158,11 +158,20 @@ the usual assumptions, leading to some ugly use of {\em mutable}
 declarations in CudaImportImageContainer.
 \item Morphology filters included in the package use texture memory
 but are not as generic as the standard ITK versions.
+\item ITK filters are able to provide their own implementations of key
+methods, such as {\em AllocateOutputs}. This can lead to problems when
+connecting CUDA enabled components to a CPU pipeline. This problem has
+been observed in the {\em itkStatisticsImageFilter}, which is a
+multi-threaded {\em ImageToImageFilter} with its own AllocateOutputs
+method passing input through to output. This bypasses the trigger to
+copy device memory back to the host, leading to incorrect results.
 \end{itemize}
 
 \section{Installation and building}
-\subsection{Cuda compiler and software development kit}
-This framework requires Cuda 3.2 and the SDK.
+\subsection{CUDA compiler and software development kit}
+This framework requires CUDA 3.2 and the SDK. The {\em thrust} library
+is also included in the examples to implement more complex components
+of some sample filters.
 \subsection{Patch ITK 3.20}
 The code distributed with this article includes a patch to modify ITK 3.20. This can be applied as follows:
 
@@ -170,23 +179,23 @@ The code distributed with this article includes a patch to modify ITK 3.20. This
 \item {\url http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
 \item extract
 \item cd ITK-3.20
-\item patch -p0 < path/to/patch_3.20.dif
+\item patch -p0 < path/to/patch.3.20.0.dif
 \end{itemize}
 
-Alternatviely, this code may currently be retrieved via git and gerrit, as follows:
+Alternatviely, this code may currently be retrieved via git, as follows:
 \begin{itemize}
-\item git clone git://itk.org/ITK.git
+\item git clone git://github.com/richardbeare/ITK.git
 \item cd ITK
 \item git checkout v3.20.0
-\item git pull http://review.source.kitware.com/p/ITK refs/changes/52/1452/1
+\item git branch v3.20.0_cuda
 \end{itemize}
 
 \subsection{Build and install modified ITK}
 There are many options available when building ITK. This process has
 been tested under Linux and there are a number of changes to defaults
-required to avoid limitations to the cuda development tools. 
+required to avoid limitations to the CUDA development tools. 
 \begin{itemize}
-  \item Specify location of Cuda SDK.
+  \item Specify location of CUDA SDK.
   \item Turn off SSE options for VNL - advanced/VNL. This avoids errors caused by multiple inclusion of SSE files.
 \end{itemize}
 
@@ -202,43 +211,112 @@ Typical application development in ITK utilizes templates and generic
 programming and therefore does not require that the developer track
 new object code dependencies when adding new filters. In principle the
 same procedure should be possible when using CUDA enabled devices by
-compiling all application code with nvcc, leading to non-cuda code
-being compiled with the host c++ compiler and cuda code being compiled
-with cuda compilers. This would also allow useful templating of cuda
+compiling all application code with nvcc, leading to non-CUDA code
+being compiled with the host c++ compiler and CUDA code being compiled
+with CUDA compilers. This would also allow useful templating of CUDA
 kernels, leading to a relatively seamless integration with traditional
 ITK development. Unfortunately the current generation of CUDA tools is
 not able to cope with c++ of the complexity used in ITK. It is
-therefore necessary to compile cuda kernels separately, which means
+therefore necessary to compile CUDA kernels separately, which means
 the developer must specify the correct object dependencies to the
 linker. Examples of this can be seen in the CMake files included with
 this article.
 
-Alternatives, such as compiling all cuda kernels into a library, are
+This approach also implies that the CUDA kernels need to be compiled
+for the appropriate types, and this is currently achieved using a set
+of macros supporting a limited range of input and output
+types. Compiling application code with nvcc would eliminate these
+macros.
+
+Alternatives, such as compiling all CUDA kernels into a library, are
 feasible but haven't been tested during this development.
 
+
+
 \section{Anatomy of a CUDA enabled filter}
-\subsection{Image parameters}
-Different image operations require different image information. Number
-of pixels and image dimensions are all available in the normal way via
-GetSize, GetNumberOfPixels and related methods.
+CUDA enabled filters can look very like a conventional ITK filter,
+with the main difference being a call to a CUDA kernel function from
+within the {\em GenerateData} method. CUDA-enabled filters should
+never have {\em ThreadedGenerateData} methods as threading is provided
+within the CUDA portion.
 
 \subsection{Memory management}
-
 Two base classes have been provided to handle standard filter memory
 management - {\em CudaInPlaceImageFilter} and {\em
 CudaImageToImageFilter}. These filters allow the standard allocation
 structure to be used via {\em this->AllocateOutputs()}. Explicit
 allocation of device memory can be achieved using
-Image->AllocateGPU().
+{\em Image->AllocateGPU()}
 
 \subsection{Templated kernel files}
-ITK filters are generic with respect to pixel type and dimension.
+ITK filters are generic with respect to pixel type and dimension and
+hence CUDA kernels should offer the same flexibility. This is not
+currently possible. The structure outlined in this section is the best
+approximation we have been able to achieve and we hope it will evolve
+to be better integrated with ITK as the CUDA tools improve.
+
+Each kernel function has a declaration - e.g. CudaAddImageFilterKernel.h contains
+\begin{verbatim}
+template <class T, class S> extern
+void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N);
+\end{verbatim}
+
+The corresponding CudaAddImageFilterKernel.cu file contains:
+\begin{verbatim}
+template <class T, class S>
+__global__ void AddImageKernel(T *output, const S *input, int N)
+{
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx<N) 
+    {
+    output[idx] += input[idx];
+    }
+}
+
+template <class T, class S>
+__global__ void AddImageKernel(T *output, const S *input1, const S* input2, int N)
+{
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx<N) 
+     {
+     output[idx] = input1[idx] + input2[idx];
+     }
+}
+
+template <class T, class S>
+void AddImageKernelFunction(const T* input1, const T* input2, S* output, unsigned int N)
+{
 
 
+    // Compute execution configuration 
+    int blockSize = 128;
+    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-\subsection{Templated kernel file}
+    // Call kernels optimized for in place filtering
+    if (output == input1)
+      AddImageKernel <<< nBlocks, blockSize >>> (output, input2, N);
+    else
+      AddImageKernel <<< nBlocks, blockSize >>> (output, input1, input2, N);
+}
 
-%\subsection{}
+#define THISTYPE float
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE * output, unsigned int N);
+#undef THISTYPE
+#define THISTYPE int
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE short
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2, THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
+#define THISTYPE unsigned char
+template void AddImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input1, const THISTYPE * input2,  THISTYPE *output, unsigned int N);
+#undef THISTYPE
+
+\end{verbatim}
+
+This is a simple structure that allows a number kernels to be precompiled for different voxel types.
 
 \bibliographystyle{plain}
 %\bibliography{local,InsightJournal}
