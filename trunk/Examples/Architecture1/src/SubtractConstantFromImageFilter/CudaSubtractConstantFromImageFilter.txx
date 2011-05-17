@@ -21,11 +21,11 @@ CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::CudaSubtractCons
  */
 template<class TInputImage, class TOutputImage>
 void CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::PrintSelf(
-		std::ostream& os, Indent indent) const
+  std::ostream& os, Indent indent) const
 {
-	Superclass::PrintSelf(os, indent);
+  Superclass::PrintSelf(os, indent);
 
-	os << indent << "Cuda SubtractConstantFrom Image Filter" << std::endl;
+  os << indent << "Cuda SubtractConstantFrom Image Filter" << std::endl;
 }
 
 /*
@@ -33,20 +33,18 @@ void CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::PrintSelf(
  */
 template<class TInputImage, class TOutputImage>
 void CudaSubtractConstantFromImageFilter<TInputImage, TOutputImage>::GenerateData() {
-	// Set input and output type names.
+  // Set input and output type names.
   this->AllocateOutputs();
-	typename OutputImageType::Pointer output = this->GetOutput();
-	typename InputImageType::ConstPointer input = this->GetInput();
+  typename OutputImageType::Pointer output = this->GetOutput();
+  typename InputImageType::ConstPointer input = this->GetInput();
 
 
-	// Get Total Size
-	const unsigned long N = input->GetPixelContainer()->Size();
-
-
-	// Call Cu Function to execute kernel
-	// Return pointer is to output array
-	SubtractConstantFromImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), output->GetDevicePointer(),
-						N, m_Constant);
+  // Get Total Size
+  const unsigned long N = input->GetPixelContainer()->Size();
+  // Call Cu Function to execute kernel
+  // Return pointer is to output array
+  SubtractConstantFromImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), output->GetDevicePointer(),
+									   N, m_Constant);
 
 }
 }

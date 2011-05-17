@@ -3,7 +3,7 @@
 #ifndef __itkCudaStatisticsImageFilter_h
 #define __itkCudaStatisticsImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkInPlaceImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkSimpleDataObjectDecorator.h"
 
@@ -22,7 +22,8 @@ namespace itk {
  * threaded. It computes statistics in each thread then combines them in
  * its AfterThreadedGenerate method.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Victorian Partnership for Advanced Computing
+ * (VPAC).Richard Beare
  *
  * \ingroup MathematicalStatisticsImageFilters CudaEnabled
  *

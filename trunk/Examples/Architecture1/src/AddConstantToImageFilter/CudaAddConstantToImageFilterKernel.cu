@@ -1,18 +1,9 @@
-/*
- * File Name:    cuda-kernel.cu
- *
- * Author:        Phillip Ward
- * Creation Date: Monday, January 18 2010, 10:00 
- * Last Modified: Wednesday, December 23 2009, 16:35 
- * 
- * File Description:
- *
- */
+
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
 
-#include <thrust/transform.h>
+#ifndef CITK_USE_THRUST
 
 template <class S>
 __global__ void AddConstantToImageKernel(S *output, int N, S C)
@@ -41,7 +32,6 @@ void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N,
    int blockSize = 128;
    int nBlocks = N/blockSize + (N%blockSize == 0?0:1);
 
-
    // Call kernel
    if (output == input)
      AddConstantToImageKernel <<< nBlocks, blockSize >>> (output, N, C);
@@ -50,27 +40,32 @@ void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N,
 
 }
 
-// template <typename S>
-// struct addC
-// {
-//     const S a;
+#else
+#include "thrust/transform.h"
 
-//     addC(S _a) : a(_a) {}
+template <typename S>
+struct addC
+{
+  const S a;
 
-//     __host__ __device__
-//         S operator()(const float& x) const { 
-//             return a + x;
-//         }
-// };
+  addC(S _a) : a(_a) {}
 
-// template<class T, class S>
-// void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N, T C)
-// {
-//   thrust::device_ptr<const T> i1(input);
-//   thrust::device_ptr<S> o1(output);
-//   thrust::transform(i1, i1 + N, o1, addC<S>(C));
+  __host__ __device__
+  S operator()(const float& x) const { 
+    return a + x;
+  }
+};
 
-// }
+template<class T, class S>
+void AddConstantToImageKernelFunction(const T* input, S* output, unsigned int N, T C)
+{
+  thrust::device_ptr<const T> i1(input);
+  thrust::device_ptr<S> o1(output);
+  thrust::transform(i1, i1 + N, o1, addC<S>(C));
+
+}
+
+#endif
 // versions we wish to compile
 #define THISTYPE float
 template void AddConstantToImageKernelFunction<THISTYPE, THISTYPE>(const THISTYPE * input, THISTYPE * output, unsigned int N, THISTYPE C);

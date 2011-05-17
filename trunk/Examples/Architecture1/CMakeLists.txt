@@ -48,6 +48,12 @@ SET(TEST_COMMAND ${ITK_TEST_DRIVER} --add-before-env PATH ${CMAKE_CURRENT_BINARY
 # FindCUDA.cmake is in the more recent versions of CMake
 #find_package(CUDA QUIET REQUIRED)
 
+OPTION(CITK_USE_THRUST "Use thrust widely, even in simple arithmetic filters")
+
+IF (CITK_USE_THRUST)
+   add_definitions(-DCITK_USE_THRUST)
+ENDIF (CITK_USE_THRUST)
+
 include_directories(
   ${myProject_SOURCE_DIR}
     )

@@ -42,7 +42,6 @@ void CudaAddConstantToImageFilter<TInputImage, TOutputImage>::GenerateData() {
   // Get Total Size
   const unsigned long N = input->GetPixelContainer()->Size();
   
-  
   // Call Cu Function to execute kernel
   // Return pointer is to output array
   AddConstantToImageKernelFunction<InputPixelType, OutputPixelType>(input->GetDevicePointer(), 
