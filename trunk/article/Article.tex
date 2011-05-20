@@ -42,7 +42,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
 \author{Richard Beare{$^1$}, Daniel Micevski, Chris Share\\Luke
-  Parkinson, Phillip Ward, Wojtek Goscinski{$1$}, Mike Kuiper{$^2$}}
+  Parkinson, Phil Ward, Wojtek Goscinski{$1$}, Mike Kuiper{$^2$}}
 \authoraddress{{$^1$}Richard.Beare@monash.edu, Monash University, Melbourne, Australia\\
 {$^2$}mike@vpac.org, Victorian Partnership for Advanced Computing, Melbourne, Australia.}
 
@@ -67,7 +67,7 @@ of how to write GPU enabled filters using the NVIDIA CUDA tools.
 
 This work was performed between late 2009 and early 2010 and is being
 published as modifications to ITK 3.20. It is hoped that publication will
-help inform more general development of GPU support in ITK 4.0 and
+help inform development of more general GPU support in ITK 4.0 and
 facilitate experimentation by users requiring functionality of 3.20 or
 wishing to pursue CUDA based developments.
 \end{abstract}
@@ -183,13 +183,14 @@ This framework requires CUDA 3.2 and the SDK. The {\em thrust} library
 is also included in the examples to implement more complex components
 of some sample filters.
 \subsection{Patch ITK 3.20}
-The code distributed with this article includes a patch to modify ITK 3.20. This can be applied as follows:
+The code distributed with this article includes a patch to modify ITK
+3.20, called {\em patch.3.20.0.dif}. This can be applied as follows:
 
 \begin{itemize}
-\item \url{http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
+\item fetch \url{http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
 \item extract
 \item cd ITK-3.20
-\item patch -p0 $<$ path/to/patch.3.20.0.dif 
+\item patch -p0 $<$ path/to/patch.3.20.0.dif
 \end{itemize}
 
 Alternatviely, this code may currently be retrieved via git, as follows:
@@ -205,7 +206,7 @@ been tested under Linux and there are a number of changes to defaults
 required to avoid limitations to the CUDA development tools. 
 \begin{itemize}
   \item Specify location of CUDA SDK.
-  \item Turn off SSE options for VNL - advanced/VNL. This avoids errors caused by multiple inclusion of SSE files.
+  \item Turn off SSE options for VNL - see advanced/VNL. This avoids errors caused by multiple inclusion of SSE files.
 \end{itemize}
 
 \subsection{Build examples}
