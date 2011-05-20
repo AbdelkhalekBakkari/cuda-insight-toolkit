@@ -28,8 +28,9 @@ namespace itk
  * user-defined linear transformation for the intensity, then please use the
  * ShiftScaleImageFilter.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing
- * (VPAC). Richard Beare.
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \sa CudaInPlaceImageFilter
  *

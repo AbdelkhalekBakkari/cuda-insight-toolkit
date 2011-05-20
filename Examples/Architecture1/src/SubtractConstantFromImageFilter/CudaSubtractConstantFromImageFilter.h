@@ -14,8 +14,9 @@ namespace itk
  * This filter is templated over the input image type
  * and the output image type.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing,
- * Richard Beare
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \ingroup IntensityImageFilters CudaEnabled
  *

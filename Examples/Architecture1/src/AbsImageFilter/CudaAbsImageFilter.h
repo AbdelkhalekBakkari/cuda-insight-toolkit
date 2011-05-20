@@ -10,8 +10,10 @@ namespace itk
 /** \class CudaAbsImageFilter
  * \brief Computes the ABS(x) pixel-wise
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
- *         Richard Beare, Monash University.
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
+ * 
  * \ingroup IntensityImageFilters  CudaEnabled
  *
  * \sa ImageToImageFilter

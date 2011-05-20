@@ -24,7 +24,9 @@ namespace itk {
  * having values > 0 are candidates for affecting the center pixel.
  *
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \sa CudaImageToImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters  CudaEnabled

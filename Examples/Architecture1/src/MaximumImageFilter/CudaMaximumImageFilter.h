@@ -18,8 +18,9 @@ namespace itk
  * input images and the type of the output image.
  * Numeric conversions (castings) are done by the C++ defaults.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing
- * (VPAC). Richard Beare
+  * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \ingroup IntensityImageFilters  CudaEnabled
  *
