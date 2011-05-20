@@ -209,8 +209,9 @@ There are many options available when building ITK. This process has
 been tested under Linux and there are a number of changes to defaults
 required to avoid limitations to the CUDA development tools. 
 \begin{itemize}
-  \item Specify location of CUDA SDK.
+  \item Specify location of CUDA SDK. Note that if there is trouble locating libcutil.a, it may be set explicitly under advanced options - CUDA\_CUT\_LIBRARY.
   \item Turn off SSE options for VNL - see advanced/VNL. This avoids errors caused by multiple inclusion of SSE files.
+  \item Enable ITK_USE_REVIEW under advanced options, in order to build all of the tests.
 \end{itemize}
 
 \subsection{Build examples}
