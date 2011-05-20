@@ -182,6 +182,10 @@ problems. The simple fix for such filters is to call {\em
 This framework requires CUDA 3.2 and the SDK. The {\em thrust} library
 is also included in the examples to implement more complex components
 of some sample filters.
+\subsection{Fetch this contribution from google code}
+The source code is included with this article and is also available from google code:
+\url{http://code.google.com/p/cuda-insight-toolkit/}. The patch for ITK is included.
+
 \subsection{Patch ITK 3.20}
 The code distributed with this article includes a patch to modify ITK
 3.20, called {\em patch.3.20.0.dif}. This can be applied as follows:
@@ -190,7 +194,7 @@ The code distributed with this article includes a patch to modify ITK
 \item fetch \url{http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.20.0.tar.gz}
 \item extract
 \item cd ITK-3.20
-\item patch -p0 $<$ path/to/patch.3.20.0.dif
+\item patch -p0 $<$ path/to/cuda-insight-toolkit/patch.3.20.0.dif
 \end{itemize}
 
 Alternatviely, this code may currently be retrieved via git, as follows:
@@ -210,8 +214,9 @@ required to avoid limitations to the CUDA development tools.
 \end{itemize}
 
 \subsection{Build examples}
-The examples and tests are included in this package. The most up to
-date version of the package can be found at \url{http://code.google.com/p/cuda-insight-toolkit/}.
+The Examples subdirectory in the citk distribution includes a
+CMakeFile for building all examples and running tests. Location of the
+patched ITK, nvcc and CUDA SDK must be provided during configuration.
 
 \subsection{Changes to standard processes for building ITK applications}
 Typical application development in ITK utilizes templates and generic
@@ -397,13 +402,13 @@ out using a Tesla T10 in a 16 core, 2261.051MHz, Intel L5520  Xeon:
 \begin{itemize}
 \item Performance improvement of 190 times observed with simple arithmetic, such as adding or subtracting constants from
   images. See {\em simple\_perf\_test.cxx} for details.
-\item Image filtering with kernels, for example simple means, offer ??
-  for 3d kernels, radius 10 voxels on images size $500 \times 500
-  \times 500$. This is potentially interesting for applications
-  requiring kernels of specific shape, because most accelerated CPU
-  schemes can only implement a restricted range of shape kernels. The
-  accelerated CPU scheme used in this test uses a box filtering
-  approach that is limited to rectangular filters.
+\item Image filtering with kernels, for example simple means, offer 32
+  times speedup for 3d kernels, radius 10 voxels on images size $500
+  \times 500 \times 500$ and 50 times speedup for kernels radius
+  20.. This is potentially interesting for applications requiring
+  kernels of specific shape, because most accelerated CPU schemes can
+  only implement a restricted range of shape kernels. Neither CPU nor
+  GPU examples exploits redundancy in this test.
 \end{itemize}
 
 
