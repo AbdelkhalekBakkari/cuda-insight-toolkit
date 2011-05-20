@@ -22,8 +22,9 @@ namespace itk {
  * threaded. It computes statistics in each thread then combines them in
  * its AfterThreadedGenerate method.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing
- * (VPAC).Richard Beare
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \ingroup MathematicalStatisticsImageFilters CudaEnabled
  *

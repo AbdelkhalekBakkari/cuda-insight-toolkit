@@ -36,7 +36,10 @@ namespace itk
  * SetInput1( image1 );
  * SetInput2( image2 );
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
+ *
  *
  * \warning No numeric overflow checking is performed in this filter.
  *

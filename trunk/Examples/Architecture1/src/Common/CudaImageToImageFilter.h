@@ -25,7 +25,13 @@ namespace itk
 {
 
 /** \class CudaImageToImageFilter
-template <class TInputImage, class TOutputImage>
+ * \brief Base class for Cuda enabled filters.
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
+ *
+ * \ingroup CudaEnabled
+ * \sa CudaInPlaceImageFilter
 **/
 
 class ITK_EXPORT CudaImageToImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>

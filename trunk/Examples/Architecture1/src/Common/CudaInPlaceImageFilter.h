@@ -23,39 +23,15 @@ namespace itk
 {
 
 /** \class CudaInPlaceImageFilter
- * \brief Base class for filters that take an image as input and overwrite that image as the output
+ * \brief Base class for Cuda enabled filters that are able to operate
+ * inplace.
+ * 
+ * This is a modification of the standard InPlaceImageFilter for Cuda
+ * enabled filters.
  *
- * CudaInPlaceImageFilter is the base class for all process objects whose
- * output image data is constructed by overwriting the input image
- * data. In other words, the output bulk data is the same block of
- * memory as the input bulk data.  This filter provides the mechanisms
- * for in place image processing while maintaining general pipeline
- * mechanics. CudaInPlaceImageFilters use less memory than standard
- * ImageToImageFilters because the input buffer is reused as the
- * output buffer.  However, this benefit does not come without a cost.
- * Since the filter overwrites its input, the ownership of the bulk
- * data is transitioned from the input data object to the output data
- * object.  When a data object has multiple consumers with one
- * of the consumers being an in place filter, the in place filter
- * effectively destroys the bulk data for the data object. Upstream
- * filters will then have to re-execute to regenerate the data object's
- * bulk data for the remaining consumers.
- *
- * Since an CudaInPlaceImageFilter reuses the input bulk data memory for the
- * output bulk data memory, the input image type must match the output
- * image type.  If the input and output image types are not identical,
- * the filter reverts to a traditional ImageToImageFilter behaviour
- * where an output image is allocated.  In place operation can also be
- * controlled (when the input and output image type match) via the
- * methods InPlaceOn() and InPlaceOff().
- *
- * Subclasses of CudaInPlaceImageFilter must take extra care in how they
- * manage memory using (and perhaps overriding) the implementations of
- * ReleaseInputs() and AllocateOutputs() provided here.
- *
- * We need a special version for Cuda enabled filters because there
- * isn't a way of creating an output image via Allocate that only has
- * Device memory. Therefore we need to call the special AllocateGPU
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  * \ingroup ImageFilters
  */
 template <class TInputImage, class TOutputImage=TInputImage>

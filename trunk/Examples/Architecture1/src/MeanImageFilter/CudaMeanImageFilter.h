@@ -14,7 +14,9 @@ namespace itk {
  *
  * A mean filter is one of the family of linear filters.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
  *
  * \sa ImageToImageFilter
  *

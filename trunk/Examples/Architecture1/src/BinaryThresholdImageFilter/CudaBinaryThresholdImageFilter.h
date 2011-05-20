@@ -36,7 +36,10 @@ namespace itk
  * Therefore, generally only one of these needs to be set, depending
  * on whether the user wants to threshold above or below the desired threshold.
  *
- * \author Phillip Ward, Victorian Partnership for Advanced Computing (VPAC)
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
+ *
  *
  * \ingroup IntensityImageFilters  CudaEnabled
  *
