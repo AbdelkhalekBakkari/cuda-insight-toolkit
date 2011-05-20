@@ -1,3 +1,24 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    CudaMinimumImageFilterKernel.cu
+  Language:  CUDA
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+/** \class CudaMinimumImageFilterKernel.cu
+ * \brief Cuda kernel code
+ * \author Phillip Ward, Luke Parkinson, Daniel Micevski, Christopher
+ * Share, Victorian Partnership for Advanced Computing (VPAC). 
+ * Richard Beare, Monash University
+ */
+
 #include <stdio.h>
 #include <cuda.h>
 #include <cutil.h>
