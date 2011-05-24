@@ -2308,14 +2308,14 @@ index 0000000..f0be2ea
 +#endif
 diff --git Code/Common/itkCudaImportImageContainer.h Code/Common/itkCudaImportImageContainer.h
 new file mode 100644
-index 0000000..22cbf9f
+index 0000000..2eb4b5f
 --- /dev/null
 +++ Code/Common/itkCudaImportImageContainer.h
-@@ -0,0 +1,261 @@
+@@ -0,0 +1,265 @@
 +/*=========================================================================
 +
 +Program:   Insight Segmentation & Registration Toolkit
-+Module:    $RCSfile: itkImportImageContainer.h,v $
++Module:    $RCSfile: itkCudaImportImageContainer.h,v $
 +Language:  C++
 +Date:      $Date: 2009-04-25 12:24:09 $
 +Version:   $Revision: 1.24 $
@@ -2381,14 +2381,14 @@ index 0000000..22cbf9f
 +  /** Get the pointer from which the image data is imported. */
 +  TElement *GetImportPointer()
 +  {
-+    if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
++    if (m_ImageLocation==GPU) { CopyToCPU(); }
 +    return m_ImportPointer;
 +  };
 +
 +  TElement *GetImportPointer() const
 +  {
-+    if (m_ImageLocation==GPU) { CopyToCPU(); }
-+    return m_DevicePointer;
++    if (m_ImageLocation==GPU) { CopyToCPU();}
++    return m_ImportPointer;
 +  };
 +
 +  TElement *GetDevicePointer()
@@ -2437,7 +2437,10 @@ index 0000000..22cbf9f
 +          * the image iterator class. */
 +  TElement *GetBufferPointer()
 +  {
-+    if (m_ImageLocation == GPU) { CopyToCPU();}
++    if (m_ImageLocation == GPU)
++      {
++      CopyToCPU();
++      }
 +    return m_ImportPointer;
 +  }
 +
@@ -2550,6 +2553,7 @@ index 0000000..22cbf9f
 +  int                  serial;
 +
 +  mutable enum memoryStatus{
++    UNKNOWN,
 +    BOTH,
 +    CPU,
 +    GPU
@@ -2575,10 +2579,10 @@ index 0000000..22cbf9f
 +#endif
 diff --git Code/Common/itkCudaImportImageContainer.txx Code/Common/itkCudaImportImageContainer.txx
 new file mode 100644
-index 0000000..b14aef4
+index 0000000..eeef520
 --- /dev/null
 +++ Code/Common/itkCudaImportImageContainer.txx
-@@ -0,0 +1,397 @@
+@@ -0,0 +1,398 @@
 +/*=========================================================================
 +
 +  Program:   Insight Segmentation & Registration Toolkit
@@ -2613,7 +2617,7 @@ index 0000000..b14aef4
 +::CudaImportImageContainer()
 +{
 +  //serial = (int)(rand()/10000000);
-+  m_ImageLocation = CPU;
++  m_ImageLocation = UNKNOWN;
 +  m_DevicePointer = 0;
 +  m_ImportPointer = 0;
 +  m_ContainerManageMemory = true;
@@ -2674,6 +2678,7 @@ index 0000000..b14aef4
 +    m_ContainerManageMemory = true;
 +    this->Modified();
 +    }
++  m_ImageLocation = CPU;
 +  //std::cout << serial << " Reserved CPU " << std::endl;
 +}
 +
@@ -2870,6 +2875,7 @@ index 0000000..b14aef4
 +    void * m_Tmp;
 +    cudaMalloc( &m_Tmp, sizeof(TElement)*size);
 +    data = (TElement *)m_Tmp;
++    m_ImageLocation = GPU;
 +    }
 +  catch(...)
 +    {
@@ -2948,7 +2954,6 @@ index 0000000..b14aef4
 +  AllocateCPU();
 +  cudaMemcpy(m_ImportPointer, m_DevicePointer,
 +	     sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
-+
 +  m_ImageLocation = CPU;
 +}
 +
@@ -3046,3 +3051,25 @@ index 8d369dc..63c0f23 100644
  ::Initialize()
  {
    //
+diff --git Code/Common/itkInPlaceImageFilter.txx Code/Common/itkInPlaceImageFilter.txx
+index 545af67..f3d1c24 100644
+--- Code/Common/itkInPlaceImageFilter.txx
++++ Code/Common/itkInPlaceImageFilter.txx
+@@ -68,6 +68,9 @@ void
+ InPlaceImageFilter<TInputImage, TOutputImage>
+ ::AllocateOutputs()
+ {
++  // trigger a copy if the previous filter was GPU enabled.
++  this->GetInput()->GetBufferPointer();
++
+   // if told to run in place and the types support it, 
+   if (this->GetInPlace() && this->CanRunInPlace())
+     {
+@@ -78,6 +81,7 @@ InPlaceImageFilter<TInputImage, TOutputImage>
+       = dynamic_cast<TOutputImage *>(const_cast<TInputImage *>(this->GetInput()));
+     if (inputAsOutput)
+       {
++      // trigger copy from GPU
+       this->GraftOutput( inputAsOutput );
+       }
+     else

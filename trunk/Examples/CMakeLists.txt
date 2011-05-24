@@ -6,10 +6,12 @@ cmake_minimum_required(VERSION 2.6.2)
 
 project(Cuda-project)
 
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/cuda" ${CMAKE_MODULE_PATH})
 
+option(CITK_USE_CUDA "Use cuda compiler and SDK - this is turned off by default to allow compilation in IJ")
 
-
+IF (CITK_USE_CUDA)
 # find_package(CUDA)
 find_package(CUDA QUIET REQUIRED)
 # find_package(CUDA 2.1)
@@ -32,10 +34,16 @@ find_package(CUDA QUIET REQUIRED)
 #   message("CUDA not found")
 #endif()
 
+SET (CUDA_USE_SDK ON)
+
+ENDIF (CITK_USE_CUDA)
+
 find_package (ITK)
 if ( ITK_FOUND )
    include( ${ITK_USE_FILE} )
 endif( ITK_FOUND )
+
+
 
 ENABLE_TESTING()
 INCLUDE(Dart)
@@ -43,12 +51,9 @@ FIND_PROGRAM(ITK_TEST_DRIVER itkTestDriver)
 SET(TEST_COMMAND ${ITK_TEST_DRIVER} --add-before-env PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 
-#set(CMAKE_MODULE_PATH "${ITK_DIR}/Cmake/cuda" ${CMAKE_MODULE_PATH})
 
-# FindCUDA.cmake is in the more recent versions of CMake
-#find_package(CUDA QUIET REQUIRED)
 
-OPTION(CITK_USE_THRUST "Use thrust widely, even in simple arithmetic filters")
+OPTION(CITK_USE_THRUST "Use thrust widely, even in simple arithmetic filters - testing only")
 
 IF (CITK_USE_THRUST)
    add_definitions(-DCITK_USE_THRUST)
