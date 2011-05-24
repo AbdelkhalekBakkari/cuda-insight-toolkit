@@ -217,7 +217,10 @@ required to avoid limitations to the CUDA development tools.
 \subsection{Build examples}
 The Examples subdirectory in the citk distribution includes a
 CMakeFile for building all examples and running tests. Location of the
-patched ITK, nvcc and CUDA SDK must be provided during configuration.
+patched ITK, nvcc and CUDA SDK must be provided during
+configuration. It is also necessary to set CITK\_USE\_CUDA to ON. This
+option has been included to allow the Insight Journal to run some
+tests without requiring CUDA development tools.
 
 \subsection{Changes to standard processes for building ITK applications}
 Typical application development in ITK utilizes templates and generic
